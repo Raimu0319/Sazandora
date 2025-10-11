@@ -1,53 +1,139 @@
-# Unreal Engine + Visual Studio for C++ Project
+################################################################################
+# Unreal Engine 5 (C++ Project) Git Ignore Template
+# by ChatGPT (based on Epic Games official template + practical dev usage)
+################################################################################
 
-# Unreal Engine generated folders
-Binaries/
-DerivedDataCache/
-Intermediate/
-Saved/
-Build/
+# Visual Studio
+################################################################################
 .vs/
-.vscode/
-
-# Visual Studio temp files
 *.VC.db
 *.VC.opendb
 *.suo
-*.log
 *.user
-*.userprefs
+*.userosscache
+*.sln.docstates
 *.ipch
+*.opendb
+*.log
 *.tlog
+*.lastbuildstate
+
+# Ignore auto-generated project/solution files
+################################################################################
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Build outputs
+################################################################################
+Binaries/
+Build/BuildRules/
+Intermediate/
+DerivedDataCache/
+Saved/
+*.Build.cs.d
+*.Target.cs.d
+
+# Unreal-specific intermediate files
+################################################################################
+ScriptInteropCache/
+DerivedDataCache/
+Engine/Intermediate/
+Engine/Saved/
+Engine/Build/BuildRules/
+Engine/Programs/**/Intermediate/
+Engine/Programs/**/Binaries/
+
+# Compiled modules / live coding temp
+################################################################################
 *.pdb
 *.obj
-*.idb
-*.tmp
 *.pch
+*.exe
+*.dll
+*.lib
+*.exp
+*.apk
+*.ipa
+*.dSYM
+*.patch_*
+*.gen.cpp
+*.generated.h
 
-# Backup and autosave
-*.backup
+# Configuration and user settings
+################################################################################
+*.opensdf
+*.sdf
+*.tmp
+*.cache
+*.log
+*.vspscc
+*.vssscc
+*.orig
 *.bak
+*.local
+*.swp
+*.swo
+*.userprefs
+*.db
+*.mdb
+
+# Unreal Editor user-specific files
+################################################################################
+*.uproject.sln
+*.uproject.filters
+*.uproject.user
+Saved/
+*.autosave
+*.backup
+*.old
+
+# Platform-specific temporary folders
+################################################################################
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.nfs*
+
+# JetBrains Rider / CLion
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+.history/
+*.code-workspace
+
+# Optional: ignore temporary plugins or marketplace cache
+################################################################################
+Plugins/*/Intermediate/
+Plugins/*/Binaries/
+Plugins/*/Saved/
+
+# Optional: ignore editor autosaves
+################################################################################
 *.autosave
 
-# Binary and packaged builds
-*.dll
-*.exe
-*.lib
-*.app
-*.apk
-*.aab
-*.ipa
+# Optional: ignore packaged builds
+################################################################################
+# Uncomment if you don’t want packaged game files in repo
+# WindowsNoEditor/
+# LinuxNoEditor/
+# Android_ASTC/
+# Android_ETC2/
+# Android_DXT/
+# IOS/
 
-# Engine generated cache
-Engine/DerivedDataCache/
-Engine/Saved/
-Engine/Intermediate/
-
-# Keep these important files!
-!*.sln
-!*.uproject
-!Config/
-!Source/
-!Content/
-!.gitignore
-!.vsconfig
+################################################################################
+# End of file
+################################################################################

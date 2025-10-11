@@ -1,110 +1,53 @@
-# ==================================================
-# Unreal Engine C++ Project Git Ignore (UE4 / UE5)
-# ==================================================
+# Unreal Engine + Visual Studio for C++ Project
 
-# --- Unreal Engine generated folders ---
+# Unreal Engine generated folders
 Binaries/
 DerivedDataCache/
 Intermediate/
 Saved/
-.vscode/
+Build/
 .vs/
-*.sdf
-*.opensdf
+.vscode/
+
+# Visual Studio temp files
 *.VC.db
 *.VC.opendb
-
-# --- User specific files ---
 *.suo
+*.log
 *.user
 *.userprefs
-*.log
-*.tlog
-*.db
-*.pdb
 *.ipch
+*.tlog
+*.pdb
 *.obj
+*.idb
+*.tmp
 *.pch
-*.exe
+
+# Backup and autosave
+*.backup
+*.bak
+*.autosave
+
+# Binary and packaged builds
 *.dll
+*.exe
 *.lib
 *.app
-*.dylib
+*.apk
+*.aab
+*.ipa
 
-# --- Visual Studio project files (can regenerate from .uproject) ---
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-
-# --- Build artifacts ---
-Build/
-*.target
-*.idb
-*.ilk
-*.manifest
-*.exp
-
-# --- Auto-generated project files ---
-*.opensdf
-*.ncb
-*.sbr
-
-# --- Unreal Local Cache files ---
-*.uprojectdirs
-*.upluginmanifest
-
-# --- Backup & autosave ---
-*_Backup.*
-*_autosave.*
-
-# --- Platform specific build files ---
-# macOS
-.DS_Store
-# Windows
-Thumbs.db
-ehthumbs.db
-# Linux
-*.so
-*.a
-*.out
-
-# --- IDE & tools ---
-.idea/
-*.code-workspace
-*.xcworkspace
-*.xcuserstate
-*.xcuserdata/
-*.sublime-project
-*.sublime-workspace
-
-# --- Packaging / distribution builds ---
-*.pak
-*.sig
-*.manifest
-*.chunkdb
-
-# --- Crash & profiling data ---
-*.dmp
-*.perf
-*.gpulog
-*.csv
-*.tsv
-*.dat
-
-# --- Optional: ignore large generated shader cache ---
+# Engine generated cache
 Engine/DerivedDataCache/
-ProjectName/DerivedDataCache/
+Engine/Saved/
+Engine/Intermediate/
 
-# --- Git LFS tracked binary assets (recommend using Git LFS) ---
-# (You will add these manually with: git lfs track "*.uasset" "*.umap")
-*.uasset
-*.umap
-
-# --- Auto-generated config files (keep Default*, ignore others) ---
-Config/*.ini
-!Config/Default*.ini
-
-# --- Plugin build output ---
-Plugins/*/Binaries/
-Plugins/*/Intermediate/
+# Keep these important files!
+!*.sln
+!*.uproject
+!Config/
+!Source/
+!Content/
+!.gitignore
+!.vsconfig

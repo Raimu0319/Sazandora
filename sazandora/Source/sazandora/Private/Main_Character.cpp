@@ -31,15 +31,23 @@ AMain_Character::AMain_Character()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
-	// 🔹 Skeletal Mesh（キャラの見た目）を読み込む
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny"));
+	// メッシュを作成
+	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));	//座標微調整
+	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));	//向きを調整
+
+	// skeletal Mesh(キャラの見た目)を読み込む
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("C:/Sazandora/sazandora/Content/Characters/Mannequins/Meshes/SKM_Manny.uasset"));
+	
+	// Meshが正しく読み込めているかどうか
+	// Suceeded()がだ正しくメッシュを作成できているかどうかを確認する返り値がbool型の関数
 	if (MeshObj.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(MeshObj.Object);
 	}
 
-	// 🔹 アニメーションBPを設定（任意）
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(TEXT("/Game/Characters/Mannequins/Animations/ABP_Manny_C"));
+	// アニメーションBPを設定（任意）
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(TEXT("C:/Sazandora/sazandora/Content/Characters/Mannequins/Animations/ABP_Quinn.uasset"));
+	
 	if (AnimBP.Succeeded())
 	{
 		GetMesh()->SetAnimInstanceClass(AnimBP.Class);

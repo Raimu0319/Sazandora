@@ -8,7 +8,12 @@
 
 ANetWorkGameModeBase::ANetWorkGameModeBase()
 {
-	DefaultPawnClass = AMain_Character::StaticClass();
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPerson/Blueprints/BP_ThirdPersonCharacter"));
+	if (PlayerPawnBPClass.Class != nullptr)
+	{
+		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
+	
 }
 
 void ANetWorkGameModeBase::BeginPlay()

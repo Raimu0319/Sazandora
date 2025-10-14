@@ -2,6 +2,7 @@
 
 #pragma once
 #include "Components/Button.h"
+#include "Components/EditableTextBox.h"
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "LogInWidget.generated.h"
@@ -23,6 +24,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* ClientButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UEditableTextBox* TextBoxIPAddress;
 
 	UFUNCTION()
 	void OnServerButtonClicked();

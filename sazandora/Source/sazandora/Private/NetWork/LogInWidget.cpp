@@ -26,17 +26,26 @@ void ULogInWidget::NativeConstruct()
 void ULogInWidget::OnServerButtonClicked()
 {
 	//サーバー起動
-	if (ANetWorkGameModeBase* GM = Cast<ANetWorkGameModeBase>(UGameplayStatics::GetGameMode(GetWorld())))
-	{
-		GM->StartListenServer();
-	}
+	FString MapName = TEXT("ThirdPersonMap_NetWorkTest");	//開くマップ
+	FString Options = MapName + TEXT("?listen");	//Listenサーバーとして開く
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*Options), true);
+
+	UE_LOG(LogTemp, Warning, TEXT("ListenServer_Start"));	//TEXT()に渡す時は英語で渡す（クラッシュ防止）
 }
 
 void ULogInWidget::OnClientButtonClicked()
 {
-	//サーバー起動
-	if (ANetWorkGameModeBase* GM = Cast<ANetWorkGameModeBase>(UGameplayStatics::GetGameMode(GetWorld())))
+	if (!TextBoxIPAddress) return;
+
+	FString IPAddress = TextBoxIPAddress->GetText().ToString();
+	if (IPAddress.IsEmpty())
 	{
-		GM->ConnectToServer(TEXT("127.0.0.1"));
+		UE_LOG(LogTemp, Warning, TEXT("No_IPAddress"));
+		return;
 	}
+
+	FString LevelName = IPAddress;
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), true);
+	UE_LOG(LogTemp, Warning, TEXT("ClientConnection:%s"), *IPAddress);
 }

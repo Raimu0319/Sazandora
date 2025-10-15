@@ -46,7 +46,6 @@ class AsazandoraCharacter : public ACharacter
 
 public:
 	AsazandoraCharacter();
-	
 
 protected:
 

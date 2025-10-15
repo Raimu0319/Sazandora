@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
@@ -13,6 +14,9 @@ AMain_Character::AMain_Character()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	//カプセルコリジョン
+	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
 
 	//変数の初期化
 	b_IsJump_ButtonHold = false;	//ジャンプボタンを押しているかどうか
@@ -24,7 +28,7 @@ AMain_Character::AMain_Character()
 	// カメラ用のSpringArm（カメラアーム）を作成
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 300.0f;	//カメラ距離
+	SpringArmComp->TargetArmLength = 500.0f;	//カメラ距離
 	SpringArmComp->bUsePawnControlRotation = true;
 
 	// カメラを作成
@@ -32,11 +36,12 @@ AMain_Character::AMain_Character()
 	CameraComp->SetupAttachment(SpringArmComp);
 
 	// メッシュを作成
+	GetMesh()->SetupAttachment(RootComponent);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));	//座標微調整
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));	//向きを調整
 
 	// skeletal Mesh(キャラの見た目)を読み込む
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("C:/Sazandora/sazandora/Content/Characters/Mannequins/Meshes/SKM_Manny.uasset"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny"));
 	
 	// Meshが正しく読み込めているかどうか
 	// Suceeded()がだ正しくメッシュを作成できているかどうかを確認する返り値がbool型の関数
@@ -46,7 +51,7 @@ AMain_Character::AMain_Character()
 	}
 
 	// アニメーションBPを設定（任意）
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(TEXT("C:/Sazandora/sazandora/Content/Characters/Mannequins/Animations/ABP_Quinn.uasset"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(TEXT("/Game/Characters/Mannequins/Animations/ABP_Quinn"));
 	
 	if (AnimBP.Succeeded())
 	{
@@ -79,8 +84,17 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// ジャンプ入力
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMain_Character::OnJumpPressed);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMain_Character::OnJumpReleased);
 
+	// 移動入力のバインド
+	PlayerInputComponent->BindAxis("MoveForward", this, &AMain_Character::MoveForward);
+	PlayerInputComponent->BindAxis("MoveR/L", this, &AMain_Character::MoveRight);
+
+	// カメラ操作のバインド
+	PlayerInputComponent->BindAxis("MouseX", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("MouseY", this, &APawn::AddControllerPitchInput);
 }
 
 //ジャンプボタンが押されたら
@@ -112,4 +126,30 @@ void  AMain_Character::OnJumpReleased()
 	// bXYOverride = XY成分（水平）をfalseで既存の速度に加算し、trueで既存の値を書き換える
 	// bZOverride = Z成分（垂直）を既存のZ速度で上書きする(trueの場合現在のZが消えて新しいZに書き変わる）
 	LaunchCharacter(FVector(0, 0, JumpPower), false, true);
+}
+
+// 前後移動処理
+void AMain_Character::MoveForward(float value)
+{
+	if (Controller && value != 0.0f)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, value);
+	}
+}
+
+// 左右移動処理
+void AMain_Character::MoveRight(float value)
+{
+	if (Controller && value != 0.0f)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Direction, value);
+	}
 }

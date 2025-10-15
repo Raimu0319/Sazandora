@@ -26,9 +26,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-protected:
+	// ジャンプ処理
 	void OnJumpPressed();
 	void OnJumpReleased();
+
+	void MoveForward(float value);	//前後移動処理
+	void MoveRight(float value);	//左右移動処理
 
 private:
 

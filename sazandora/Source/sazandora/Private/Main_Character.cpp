@@ -25,9 +25,11 @@ AMain_Character::AMain_Character()
 	Max_Jump_HoldTime = 0.3f;		//最大押し続け時間(秒)
 	Min_Jump_Strength = 300.0f;		//最低ジャンプ力
 	Add_Jump_Boost = 50.0f;			//追加ジャンプ力
-	b_IsRun = false;				//ダッシュしているかどうか
-	Run_Speed = 0.0f;				//ダッシュ速度
-	Max_Run_Speed = 15.0f;			//最大ダッシュ速度
+
+	b_IsDash = false;				//ダッシュしているかどうか
+	Dash_HoldTime = 0.0f;			//ダッシュキーのホールド時間
+	Dash_Speed = 0.0f;				//ダッシュ速度
+	Max_Dash_Speed = 850.0f;			//最大ダッシュ速度
 
 	// カメラ用のSpringArm（カメラアーム）を作成
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -85,6 +87,9 @@ void AMain_Character::Tick(float DeltaTime)
 	// ジャンプ処理
 	AMain_Character::Jump(DeltaTime);
 
+	// ダッシュ処理
+	AMain_Character::Dash(DeltaTime);
+
 }
 
 // Called to bind functionality to input
@@ -95,6 +100,10 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	// ジャンプ入力
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMain_Character::OnJumpPressed);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMain_Character::OnJumpReleased);
+
+	// ダッシュ入力
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AMain_Character::On_Dash_Pressed);
+	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AMain_Character::On_Dash_Released);
 
 	// 移動入力のバインド
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMain_Character::MoveForward);
@@ -167,6 +176,7 @@ void AMain_Character::MoveRight(float value)
 	}
 }
 
+// ジャンプ処理
 void AMain_Character::Jump(float DeltaTime)
 {
 	// ジャンプボタンが離されてない状態かつジャンプ中なら
@@ -214,7 +224,78 @@ void AMain_Character::Jump(float DeltaTime)
 	}
 }
 
-void AMain_Character::Move_Run(float DeltaTime)
+// ダッシュボタンが押された時
+void AMain_Character::On_Dash_Pressed()
 {
-	
+	b_IsDash = true;
+	Dash_HoldTime = 0.0f;
+}
+
+// ダッシュボタンが離された時
+void AMain_Character::On_Dash_Released()
+{
+	b_IsDash = false;
+	Dash_Speed = 0.0f;
+}
+
+// ダッシュ処理
+void AMain_Character::Dash(float DeltaTime)
+{
+	// ダッシュ状態かどうか
+	if (b_IsDash)
+	{
+		// ホールド時間の計測
+		Dash_HoldTime += DeltaTime;
+
+		// ダッシュ状態がtrueかつDash_SpeedがMax_Dash_Speedより小さい時
+		if (Dash_Speed < Max_Dash_Speed)
+		{
+			// Dash_HoldTimeを/0.5で割った時に0.0f～1.0fの間になるか	例）Dash_HoldTimeが0.5の場合は1になるので1.0fが返ってくる。0.25の場合は0.5が返ってくる
+			float alpha = FMath::Clamp(Dash_HoldTime / 0.5f, 0.0f, 1.0f);
+
+			// イーズ関数を使用して徐々に速度が早くなる計算
+			float PowerCurve = FMath::InterpEaseOut(0.0f, 1.0f, alpha, 1.0f);
+
+			//　毎フレームごとに加算される数値 ＝ 基礎速度 * PowerCurve(0.0f ～1.0f) * １フレームの経過時間
+			Dash_Speed = 100.0f * PowerCurve * DeltaTime;
+
+			//FVector NewVelocity = GetCharacterMovement()->Velocity;		//移動力の取得
+			//NewVelocity.Y += ExtraPower * DeltaTime * 60.0f;			//Z方向へ1フレーム分の加速
+			//GetCharacterMovement()->Velocity = NewVelocity;				//移動量の変更
+		}
+		else if (b_IsDash == true && Dash_Speed > Max_Dash_Speed)
+		{
+			Dash_Speed = Max_Dash_Speed;
+		}
+
+		// ⚡実際に移動速度を反映
+		float walk_speed = GetCharacterMovement()->MaxWalkSpeed + Dash_Speed;
+
+		if (walk_speed <= Max_Dash_Speed)
+		{
+			GetCharacterMovement()->MaxWalkSpeed = walk_speed + Dash_Speed;
+		}
+		else
+		{
+			GetCharacterMovement()->MaxWalkSpeed = Max_Dash_Speed;
+		}
+
+		////	プレイヤーが操作しているカメラの向きを取得
+		////	Rotationはピッチ（上下）・ヨー（左右）・ロール（傾き）をもつ回転情報　例）カメラが右を剥いていた場合はRotation.Yawの角度は右向きになる
+		//const FRotator Rotation = Controller->GetControlRotation();
+
+		////　水平方向の回転を抽出
+		//const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		////	現在の向きから前方向(X軸方向)のベクトルを算出することでカメラが今向いている方向がわかる
+		//const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		////	Direction(どの方向)に、value(どれだけ動くか)を指定して実行する
+		//AddMovementInput(Direction, 1.0f);
+	}
+	else
+	{
+		// ダッシュが終了したら速度を戻す
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	}
 }

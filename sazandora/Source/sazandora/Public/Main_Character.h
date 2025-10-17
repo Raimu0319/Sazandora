@@ -31,7 +31,10 @@ public:
 	void OnJumpReleased();
 	void Jump(float DeltaTime);
 
-	void Move_Run(float DeltaTime);		//ダッシュ処理
+	//ダッシュ処理
+	void On_Dash_Pressed();
+	void On_Dash_Released();
+	void Dash(float DeltaTime);		
 
 	void MoveForward(float value);	//前後移動処理
 	void MoveRight(float value);	//左右移動処理
@@ -57,14 +60,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Jump Settings");
 	float Add_Jump_Boost;			//追加ジャンプ力
 
-	UPROPERTY(EditAnywhere, Category = "Run Settings")
-	bool b_IsRun;					//ダッシュ状態かどうか
+	UPROPERTY(EditAnywhere, Category = "Dash Settings")
+	bool b_IsDash;					//ダッシュ状態かどうか
 
-	UPROPERTY(EditAnywhere, Category = "Run Settings")
-	float Run_Speed;				//ダッシュした時の移動速度
+	UPROPERTY(EditAnywhere, Category = "Dash Settings")
+	float Dash_HoldTime;				//ダッシュキーのホールド時間
 
-	UPROPERTY(EditAnywhere, Category = "Run Settings")
-	float Max_Run_Speed;			//最大ダッシュ速度
+	UPROPERTY(EditAnywhere, Category = "Dash Settings")
+	float Dash_Speed;				//ダッシュした時の移動速度
+
+	UPROPERTY(EditAnywhere, Category = "Dash Settings")
+	float Max_Dash_Speed;			//最大ダッシュ速度
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

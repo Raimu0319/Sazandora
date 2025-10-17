@@ -29,14 +29,21 @@ public:
 	// ジャンプ処理
 	void OnJumpPressed();
 	void OnJumpReleased();
+	void Jump(float DeltaTime);
+
+	void Move_Run(float DeltaTime);		//ダッシュ処理
 
 	void MoveForward(float value);	//前後移動処理
 	void MoveRight(float value);	//左右移動処理
 
 private:
 
+	// 例）UPROPERTY(EditAnywhere(エディタ上で編集可能)、Category = 項目名)
 	UPROPERTY(EditAnywhere, Category = "Jump Settings");
 	bool  b_IsJump_ButtonHold;		//ジャンプボタンを押しているかどうか
+
+	UPROPERTY(EditAnywhere, Category = "Jump Settings");
+	bool  b_IsJump;		//ジャンプをしているかどうか
 	
 	UPROPERTY(EditAnywhere, Category = "Jump Settings");
 	float Jump_HoldTime;			//押し続けた時間
@@ -48,7 +55,16 @@ private:
 	float Min_Jump_Strength;		//最低ジャンプ力
 
 	UPROPERTY(EditAnywhere, Category = "Jump Settings");
-	float Max_Jump_Strength;		//最大ジャンプ力
+	float Add_Jump_Boost;			//追加ジャンプ力
+
+	UPROPERTY(EditAnywhere, Category = "Run Settings")
+	bool b_IsRun;					//ダッシュ状態かどうか
+
+	UPROPERTY(EditAnywhere, Category = "Run Settings")
+	float Run_Speed;				//ダッシュした時の移動速度
+
+	UPROPERTY(EditAnywhere, Category = "Run Settings")
+	float Max_Run_Speed;			//最大ダッシュ速度
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

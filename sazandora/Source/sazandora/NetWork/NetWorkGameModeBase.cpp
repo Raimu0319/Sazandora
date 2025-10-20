@@ -4,7 +4,7 @@
 #include "NetWorkGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
-#include "../Public/Main_Character.h"
+#include "../GameMain/Main_Character.h"
 
 ANetWorkGameModeBase::ANetWorkGameModeBase()
 {

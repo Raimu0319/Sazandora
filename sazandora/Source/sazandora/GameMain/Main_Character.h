@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Main_Character.generated.h"
 
+class ANPC_Character;
+
 UCLASS()
 class SAZANDORA_API AMain_Character : public ACharacter
 {
@@ -19,6 +21,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+private:
+	ANPC_Character* TargetNPC;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -29,15 +34,23 @@ public:
 	// ジャンプ処理
 	void OnJumpPressed();
 	void OnJumpReleased();
-	void Jump(float DeltaTime);
+	void Custom_Jump(float DeltaTime);
 
-	//ダッシュ処理
+	// ダッシュ処理
 	void On_Dash_Pressed();
 	void On_Dash_Released();
 	void Dash(float DeltaTime);		
 
+	// 会話キー
+	void On_Talk_Eventkey();
+
+	// 移動処理
 	void MoveForward(float value);	//前後移動処理
 	void MoveRight(float value);	//左右移動処理
+
+	// NPC関連
+	void Set_NPC_Pointer(ANPC_Character* npc_charcter);		// NPCのポインタをセットする関数
+	void Set_Talk_Flg(bool talk_flg);						// Talkフラグのセット
 
 private:
 
@@ -71,6 +84,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Dash Settings")
 	float Max_Dash_Speed;			//最大ダッシュ速度
+
+	UPROPERTY()
+	bool Is_Talk;			//最大ダッシュ速度
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

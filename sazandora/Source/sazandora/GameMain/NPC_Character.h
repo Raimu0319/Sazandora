@@ -20,6 +20,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// プレイヤーが会話範囲にいるかどうか
+	UPROPERTY(VisibleAnywhere, Category = "NPC")
+	bool Is_Talk_Flg;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -30,12 +34,16 @@ public:
 
 	// 会話開始関数（プレイヤーが近づいたときなどに呼ぶ）
 	UFUNCTION()
-	void OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActer,
+	void OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	// 離れたとき
 	UFUNCTION()
 	void OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	// 会話イベント
+	UFUNCTION()
+	void Talk_Event();
 
 };

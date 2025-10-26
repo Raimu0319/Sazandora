@@ -2,6 +2,7 @@
 
 
 #include "Main_Character.h"
+#include "NPC_Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/InputComponent.h"
@@ -42,6 +43,10 @@ AMain_Character::AMain_Character()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
+	// NPCのポインタ
+	TargetNPC = nullptr;
+	Is_Talk = false;
+
 	// メッシュを作成
 	GetMesh()->SetupAttachment(RootComponent);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));	//座標微調整
@@ -76,7 +81,6 @@ AMain_Character::AMain_Character()
 void AMain_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -85,7 +89,7 @@ void AMain_Character::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// ジャンプ処理
-	AMain_Character::Jump(DeltaTime);
+	AMain_Character::Custom_Jump(DeltaTime);
 
 	// ダッシュ処理
 	AMain_Character::Dash(DeltaTime);
@@ -104,6 +108,9 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	// ダッシュ入力
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AMain_Character::On_Dash_Pressed);
 	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AMain_Character::On_Dash_Released);
+
+	// 会話キー
+	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &AMain_Character::On_Talk_Eventkey);
 
 	// 移動入力のバインド
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMain_Character::MoveForward);
@@ -177,7 +184,7 @@ void AMain_Character::MoveRight(float value)
 }
 
 // ジャンプ処理
-void AMain_Character::Jump(float DeltaTime)
+void AMain_Character::Custom_Jump(float DeltaTime)
 {
 	// ジャンプボタンが離されてない状態かつジャンプ中なら
 	if (b_IsJump_ButtonHold && b_IsJump)
@@ -268,7 +275,7 @@ void AMain_Character::Dash(float DeltaTime)
 			Dash_Speed = Max_Dash_Speed;
 		}
 
-		// ⚡実際に移動速度を反映
+		// 実際に移動速度を反映
 		float walk_speed = GetCharacterMovement()->MaxWalkSpeed + Dash_Speed;
 
 		if (walk_speed <= Max_Dash_Speed)
@@ -279,23 +286,32 @@ void AMain_Character::Dash(float DeltaTime)
 		{
 			GetCharacterMovement()->MaxWalkSpeed = Max_Dash_Speed;
 		}
-
-		////	プレイヤーが操作しているカメラの向きを取得
-		////	Rotationはピッチ（上下）・ヨー（左右）・ロール（傾き）をもつ回転情報　例）カメラが右を剥いていた場合はRotation.Yawの角度は右向きになる
-		//const FRotator Rotation = Controller->GetControlRotation();
-
-		////　水平方向の回転を抽出
-		//const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		////	現在の向きから前方向(X軸方向)のベクトルを算出することでカメラが今向いている方向がわかる
-		//const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		////	Direction(どの方向)に、value(どれだけ動くか)を指定して実行する
-		//AddMovementInput(Direction, 1.0f);
 	}
 	else
 	{
 		// ダッシュが終了したら速度を戻す
 		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	}
+}
+
+// 会話キー
+void AMain_Character::On_Talk_Eventkey()
+{
+	if (TargetNPC != nullptr)
+	{
+		if (Is_Talk)
+		{
+			TargetNPC->Talk_Event();
+		}
+	}
+}
+
+void AMain_Character::Set_Talk_Flg(bool talk_flg)
+{
+	this->Is_Talk = talk_flg;
+}
+
+void AMain_Character::Set_NPC_Pointer(ANPC_Character* npc_charcter)
+{
+	TargetNPC = npc_charcter;
 }

@@ -8,6 +8,7 @@
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MyPlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
@@ -30,7 +31,9 @@ AMain_Character::AMain_Character()
 	b_IsDash = false;				//ダッシュしているかどうか
 	Dash_HoldTime = 0.0f;			//ダッシュキーのホールド時間
 	Dash_Speed = 0.0f;				//ダッシュ速度
-	Max_Dash_Speed = 850.0f;			//最大ダッシュ速度
+	Max_Dash_Speed = 850.0f;		//最大ダッシュ速度
+
+	buy_list.SetNum(D_MAX_BUY_LISTSIZE);					//買い物リストの要素数の設定
 
 	// カメラ用のSpringArm（カメラアーム）を作成
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -81,6 +84,19 @@ AMain_Character::AMain_Character()
 void AMain_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// PlayerStateの取得
+	AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
+
+	buy_list = MyPlayerState->Random_Item();
+
+	// 数値をFStringに変換
+	for (int32 i = 0; i < 3; i++)
+	{
+		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), buy_list[i]);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+	}
+
 }
 
 // Called every frame
@@ -299,6 +315,13 @@ void AMain_Character::On_Talk_Eventkey()
 {
 	if (TargetNPC != nullptr)
 	{
+		//	空中にいる場合はジャンプをしないようにする
+		if (GetCharacterMovement()->IsFalling())
+		{
+			//	空中にいる場合は処理を行わない
+			return;
+		}
+
 		if (Is_Talk)
 		{
 			TargetNPC->Talk_Event();

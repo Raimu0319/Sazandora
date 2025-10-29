@@ -38,5 +38,5 @@ public:
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
 	// 会話イベント
-	virtual void Talk_Event(AMain_Character* player);
+	virtual void Talk_Event(AMain_Character* player) override;
 };

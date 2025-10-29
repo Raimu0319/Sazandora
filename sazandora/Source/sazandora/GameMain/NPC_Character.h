@@ -48,6 +48,6 @@ public:
 
 	// 会話イベント
 	UFUNCTION()
-	virtual void Talk_Event(TArray<E_ITEM_TYPE> p_type);
+	virtual void Talk_Event(AMain_Character* player);
 
 };

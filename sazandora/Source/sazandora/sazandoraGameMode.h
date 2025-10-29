@@ -13,6 +13,12 @@ class AsazandoraGameMode : public AGameModeBase
 
 public:
 	AsazandoraGameMode();
+
+protected:
+	virtual AActor* FindPlayerStart_Implementation(AController* player, const FString& IncomingName) override;
+
+private:
+	int32 NextPlayerIndex = 0;
 };
 
 

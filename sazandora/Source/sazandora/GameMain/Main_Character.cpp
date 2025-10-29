@@ -323,9 +323,25 @@ TArray<E_ITEM_TYPE> AMain_Character::Get_ItemList()
 	return this->buy_list;
 }
 
+// クリアリストの取得
 TArray<bool> AMain_Character::Get_Crear_List()
 {
 	return this->buylist_crear;
+}
+
+// クリアリストのセット
+void AMain_Character::Set_CrearList(int i, bool flg)
+{
+	// i番目をflgの値に変更する
+	this->buylist_crear[i] = flg;
+
+	// 数値をFStringに変換
+	for (int32 j = 0; j < 3; j++)
+	{
+		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), buylist_crear[j]);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+	}
+
 }
 
 // 会話キー
@@ -342,7 +358,7 @@ void AMain_Character::On_Talk_Eventkey()
 
 		if (Is_Talk)
 		{
-			TargetNPC->Talk_Event(buy_list);
+			TargetNPC->Talk_Event(this);
 		}
 	}
 }

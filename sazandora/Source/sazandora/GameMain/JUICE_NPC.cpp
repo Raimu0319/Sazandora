@@ -72,11 +72,17 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 			// 同じアイテムを見つけたら
 			if (p_buylist[i] == e_mytype)
 			{
+				player->Set_CrearList(i, true);
 
+				// テキストの表示
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is buy"));
 			}
 		}
 	}
+	else
+	{
+		// テキストの表示
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is not buy"));
+	}
 
-	// テキストの表示
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is in"));
 }

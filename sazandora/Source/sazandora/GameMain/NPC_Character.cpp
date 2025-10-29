@@ -83,7 +83,7 @@ void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent
 	}
 }
 
-void ANPC_Character::Talk_Event(TArray<E_ITEM_TYPE> p_type)
+void ANPC_Character::Talk_Event(AMain_Character* player)
 {
 	// テキストの表示
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is in"));

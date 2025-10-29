@@ -46,7 +46,7 @@ AMain_Character::AMain_Character()
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->TargetArmLength = 300;	//カメラ距離
-	SpringArmComp->bUsePawnControlRotation = false;
+	SpringArmComp->bUsePawnControlRotation = true;
 	SpringArmComp->SocketOffset = FVector(30.0f, 90.0f, 30.0f);		//カメラの上下左右の調整
 
 	// カメラを作成
@@ -95,7 +95,7 @@ void AMain_Character::BeginPlay()
 	// PlayerStateの取得
 	AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
 
-	buy_list = MyPlayerState->Random_Item();
+	buy_list = MoveTemp(MyPlayerState->Random_Item());
 
 	// 数値をFStringに変換
 	for (int32 i = 0; i < 3; i++)

@@ -16,13 +16,11 @@ class SAZANDORA_API AMyPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
-	
-	UPROPERTY()
-	TArray<E_ITEM_TYPE>  player_buy_list;
-
-public:
 	// コンストラクタ
 	AMyPlayerState();
+	
+	UPROPERTY()
+	TArray<E_ITEM_TYPE> player_buy_list;
 
 	TArray<E_ITEM_TYPE> Random_Item();
 

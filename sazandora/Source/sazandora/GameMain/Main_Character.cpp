@@ -34,6 +34,13 @@ AMain_Character::AMain_Character()
 	Max_Dash_Speed = 850.0f;		//最大ダッシュ速度
 
 	buy_list.SetNum(D_MAX_BUY_LISTSIZE);					//買い物リストの要素数の設定
+	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);				//買い物達成状況リストの要素数の設定
+
+	// buylist_crearの中身をfalseで初期化
+	for (int32 i = 0; i < D_MAX_BUY_LISTSIZE; i++)
+	{
+		buylist_crear[i] = false;
+	}
 
 	// カメラ用のSpringArm（カメラアーム）を作成
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -310,6 +317,17 @@ void AMain_Character::Dash(float DeltaTime)
 	}
 }
 
+// アイテムリストの取得
+TArray<E_ITEM_TYPE> AMain_Character::Get_ItemList()
+{
+	return this->buy_list;
+}
+
+TArray<bool> AMain_Character::Get_Crear_List()
+{
+	return this->buylist_crear;
+}
+
 // 会話キー
 void AMain_Character::On_Talk_Eventkey()
 {
@@ -324,7 +342,7 @@ void AMain_Character::On_Talk_Eventkey()
 
 		if (Is_Talk)
 		{
-			TargetNPC->Talk_Event();
+			TargetNPC->Talk_Event(buy_list);
 		}
 	}
 }

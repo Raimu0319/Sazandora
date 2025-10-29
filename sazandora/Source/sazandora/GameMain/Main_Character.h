@@ -54,6 +54,11 @@ public:
 	void Set_NPC_Pointer(ANPC_Character* npc_charcter);		// NPCのポインタをセットする関数
 	void Set_Talk_Flg(bool talk_flg);						// Talkフラグのセット
 
+	// アイテムリストの取得
+	TArray<E_ITEM_TYPE> Get_ItemList();
+
+	TArray<bool> Get_Crear_List();
+
 private:
 
 	// 例）UPROPERTY(EditAnywhere(エディタ上で編集可能)、Category = 項目名)
@@ -89,6 +94,9 @@ private:
 
 	UPROPERTY()
 	bool Is_Talk;			//最大ダッシュ速度
+
+	UPROPERTY()
+	TArray<bool> buylist_crear;			//買い物達成状況
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

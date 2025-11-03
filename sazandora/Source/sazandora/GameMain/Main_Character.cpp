@@ -33,15 +33,6 @@ AMain_Character::AMain_Character()
 	Dash_Speed = 0.0f;				//ダッシュ速度
 	Max_Dash_Speed = 850.0f;		//最大ダッシュ速度
 
-	buy_list.SetNum(D_MAX_BUY_LISTSIZE);					//買い物リストの要素数の設定
-	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);				//買い物達成状況リストの要素数の設定
-
-	// buylist_crearの中身をfalseで初期化
-	for (int32 i = 0; i < D_MAX_BUY_LISTSIZE; i++)
-	{
-		buylist_crear[i] = false;
-	}
-
 	// カメラ用のSpringArm（カメラアーム）を作成
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComp->SetupAttachment(RootComponent);
@@ -95,12 +86,17 @@ void AMain_Character::BeginPlay()
 	// PlayerStateの取得
 	AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
 
-	buy_list = MoveTemp(MyPlayerState->Random_Item());
+	MyPlayerState->Random_Item();
+
+	//buy_list = MyPlayerState->Random_Item();
+	
+	// デバック用		// 1,2,3
+	 //buy_list = { E_ITEM_TYPE::E_JUICE,E_ITEM_TYPE::E_HAMBRGER,E_ITEM_TYPE::E_DONUT };
 
 	// 数値をFStringに変換
 	for (int32 i = 0; i < 3; i++)
 	{
-		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), buy_list[i]);
+		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
 		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
 	}
 
@@ -315,33 +311,6 @@ void AMain_Character::Dash(float DeltaTime)
 		// ダッシュが終了したら速度を戻す
 		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	}
-}
-
-// アイテムリストの取得
-TArray<E_ITEM_TYPE> AMain_Character::Get_ItemList()
-{
-	return this->buy_list;
-}
-
-// クリアリストの取得
-TArray<bool> AMain_Character::Get_Crear_List()
-{
-	return this->buylist_crear;
-}
-
-// クリアリストのセット
-void AMain_Character::Set_CrearList(int i, bool flg)
-{
-	// i番目をflgの値に変更する
-	this->buylist_crear[i] = flg;
-
-	// 数値をFStringに変換
-	for (int32 j = 0; j < 3; j++)
-	{
-		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), buylist_crear[j]);
-		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
-	}
-
 }
 
 // 会話キー

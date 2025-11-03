@@ -15,16 +15,30 @@ class SAZANDORA_API AMyPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	// コンストラクタ
 	AMyPlayerState();
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TArray<E_ITEM_TYPE> player_buy_list;
 
-	TArray<E_ITEM_TYPE> Random_Item();
+	UPROPERTY(Replicated)
+	TArray<bool> buylist_crear;			//買い物達成状況
+
+	void Random_Item();
+
+	void Buy_Item(int i, bool flg);
+
+	bool Is_Cleared() const;
+
+	// Blueprintへの通知
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnItemUpdated();
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 };

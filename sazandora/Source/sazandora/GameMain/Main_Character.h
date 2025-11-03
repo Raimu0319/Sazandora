@@ -24,7 +24,6 @@ protected:
 
 private:
 	ANPC_Character* TargetNPC;
-	TArray<E_ITEM_TYPE> buy_list;
 
 public:	
 	// Called every frame
@@ -53,13 +52,6 @@ public:
 	// NPC関連
 	void Set_NPC_Pointer(ANPC_Character* npc_charcter);		// NPCのポインタをセットする関数
 	void Set_Talk_Flg(bool talk_flg);						// Talkフラグのセット
-
-	// アイテムリストの取得
-	TArray<E_ITEM_TYPE> Get_ItemList();
-
-	// クリアリスト
-	TArray<bool> Get_Crear_List();			//クリアリストの取得
-	void Set_CrearList(int i,bool flg);		//クリアリストのセット
 
 private:
 
@@ -96,9 +88,6 @@ private:
 
 	UPROPERTY()
 	bool Is_Talk;			//最大ダッシュ速度
-
-	UPROPERTY()
-	TArray<bool> buylist_crear;			//買い物達成状況
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

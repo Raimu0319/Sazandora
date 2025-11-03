@@ -2,6 +2,7 @@
 
 
 #include "MyPlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 // 初期化
 AMyPlayerState::AMyPlayerState()
@@ -9,14 +10,25 @@ AMyPlayerState::AMyPlayerState()
 
 }
 
+void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMyPlayerState, player_buy_list);
+	DOREPLIFETIME(AMyPlayerState,buylist_crear);
+}
+
 // BeginPlay
 void AMyPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+
+	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
+
+	buylist_crear = { false, false, false };
 }
 
 // ランダムで購入するアイテムを渡す処理
-TArray<E_ITEM_TYPE> AMyPlayerState::Random_Item()
+void AMyPlayerState::Random_Item()
 {
 	player_buy_list.Empty();						// 初期化
 	player_buy_list.Reserve(D_MAX_BUY_LISTSIZE);	// メモリの確保
@@ -60,8 +72,20 @@ TArray<E_ITEM_TYPE> AMyPlayerState::Random_Item()
 			player_buy_list.Add(Item_Type);
 		}
 	}
+}
 
-	// アイテムリストを渡す
-	return player_buy_list;
+void AMyPlayerState::Buy_Item(int i, bool flg)
+{
+	buylist_crear[i] = flg;
+	OnItemUpdated();
+}
 
+bool AMyPlayerState::Is_Cleared() const
+{
+	if (!buylist_crear.Contains(false))
+	{
+		return true;
+	}
+
+	return false;
 }

@@ -2,6 +2,7 @@
 
 
 #include "JUICE_NPC.h"
+#include "MyPlayerState.h"
 #include "Main_Character.h"
 
 AJUICE_NPC::AJUICE_NPC()
@@ -61,7 +62,11 @@ void AJUICE_NPC::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 void AJUICE_NPC::Talk_Event(AMain_Character* player)
 {
 	// プレイヤーの買い物リストを保存
-	TArray<E_ITEM_TYPE> p_buylist = player->Get_ItemList();
+	//TArray<E_ITEM_TYPE> p_buylist = player->Get_ItemList();
+
+	AMyPlayerState* player_state = player->GetPlayerState<AMyPlayerState>();
+
+	TArray<E_ITEM_TYPE> p_buylist = player_state->player_buy_list;
 
 	// 自分が販売しているアイテムがあるかどうか
 	if (p_buylist.Contains(e_mytype))
@@ -72,7 +77,7 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 			// 同じアイテムを見つけたら
 			if (p_buylist[i] == e_mytype)
 			{
-				player->Set_CrearList(i, true);
+				player_state->Buy_Item(i, true);
 
 				// テキストの表示
 				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is buy"));

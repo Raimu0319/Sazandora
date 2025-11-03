@@ -2,6 +2,7 @@
 
 
 #include "MyPlayerState.h"
+#include "HUDWidget.h"
 #include "Net/UnrealNetwork.h"
 
 // 初期化
@@ -74,6 +75,7 @@ void AMyPlayerState::Random_Item()
 	}
 }
 
+// アイテム購入処理
 void AMyPlayerState::Buy_Item(int i, bool flg)
 {
 	buylist_crear[i] = flg;
@@ -88,4 +90,9 @@ bool AMyPlayerState::Is_Cleared() const
 	}
 
 	return false;
+}
+
+void AMyPlayerState::OnItemUpdated()
+{
+	wiget_p->RefreshUI();
 }

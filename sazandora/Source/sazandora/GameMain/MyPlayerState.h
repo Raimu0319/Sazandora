@@ -22,10 +22,10 @@ public:
 	// コンストラクタ
 	AMyPlayerState();
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(BlueprintReadOnly,Replicated)
 	TArray<E_ITEM_TYPE> player_buy_list;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(BlueprintReadOnly,Replicated)
 	TArray<bool> buylist_crear;			//買い物達成状況
 
 	void Random_Item();
@@ -34,8 +34,11 @@ public:
 
 	bool Is_Cleared() const;
 
+	UPROPERTY()
+	class UHUDWidget* wiget_p = nullptr;
+
 	// Blueprintへの通知
-	UFUNCTION(BlueprintImplementableEvent)
+	
 	void OnItemUpdated();
 
 protected:

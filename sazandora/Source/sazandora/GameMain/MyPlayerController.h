@@ -21,13 +21,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
-	UPROPERTY(EditDefaultsOnly, category ="UI")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UHUDWidget> HUDWidget_class;
-
-private:
-	UPROPERTY()
-	UHUDWidget* HUDWidget;
-	
 	
 };

@@ -88,11 +88,6 @@ void AMain_Character::BeginPlay()
 
 	MyPlayerState->Random_Item();
 
-	//buy_list = MyPlayerState->Random_Item();
-	
-	// デバック用		// 1,2,3
-	 //buy_list = { E_ITEM_TYPE::E_JUICE,E_ITEM_TYPE::E_HAMBRGER,E_ITEM_TYPE::E_DONUT };
-
 	// 数値をFStringに変換
 	for (int32 i = 0; i < 3; i++)
 	{

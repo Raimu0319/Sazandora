@@ -12,10 +12,10 @@ UENUM(BlueprintType)
 enum class E_ITEM_TYPE : uint8
 {
 	E_NONE     UMETA(DisplayName = "None"),
-	E_JUICE	   UMETA(DisplayName = "None"),
-	E_HAMBRGER UMETA(DisplayName = "None"),
-	E_DONUT	   UMETA(DisplayName = "None"),
-	E_POPCORN  UMETA(DisplayName = "None")
+	E_JUICE	   UMETA(DisplayName = "E_JUICE"),
+	E_HAMBRGER UMETA(DisplayName = "E_HAMBRGER"),
+	E_DONUT	   UMETA(DisplayName = "E_DONUT"),
+	E_POPCORN  UMETA(DisplayName = "E_POPCORN")
 };
 
 /**

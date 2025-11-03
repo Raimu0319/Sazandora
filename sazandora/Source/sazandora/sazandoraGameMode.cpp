@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameMain/Main_Character.h"
 #include "GameMain/MyPlayerState.h"
+#include "GameMain/MyPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 
 AsazandoraGameMode::AsazandoraGameMode()
@@ -14,6 +15,8 @@ AsazandoraGameMode::AsazandoraGameMode()
 
 	// カスタムのPlayerStateクラスの指定
 	PlayerStateClass = AMyPlayerState::StaticClass();
+
+	PlayerControllerClass = AMyPlayerController::StaticClass();
 }
 
 AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, const FString& IncomingName)

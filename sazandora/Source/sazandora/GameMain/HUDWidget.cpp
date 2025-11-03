@@ -7,8 +7,11 @@ void UHUDWidget::InitializeWidget(AMyPlayerState* PlayerState)
 {
 	player_state = PlayerState;
 
-	if (!player_state)
+	if (player_state)
 	{
+		// playerstateにポインタを渡す
+		player_state->wiget_p = this;
+
 		player_state->OnItemUpdated();
 	}
 }

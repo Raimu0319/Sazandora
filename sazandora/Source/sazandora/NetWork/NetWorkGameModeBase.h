@@ -26,6 +26,13 @@ public:
 
 	//クライアント接続
 	UFUNCTION(BlueprintCallable)
-	void ConnectToServer(const FString& IPAddress);	
+	void ConnectToServer(const FString& IPAddress);
+
+protected:
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual void Logout(AController* Exiting) override;
+
+private:
+	static int32 NextSpawnIndex;
 
 };

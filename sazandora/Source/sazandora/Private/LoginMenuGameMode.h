@@ -16,4 +16,8 @@ class SAZANDORA_API ALoginMenuGameMode : public AGameModeBase
 	
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	ALoginMenuGameMode();
+
 };

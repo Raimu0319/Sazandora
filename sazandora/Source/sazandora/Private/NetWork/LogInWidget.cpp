@@ -45,7 +45,10 @@ void ULogInWidget::OnClientButtonClicked()
 		return;
 	}
 
-	FString LevelName = IPAddress;
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), true);
+	FString MapPath = FString::Printf(TEXT("/Game/Maps/test_map?listen"));
+
+	// クライアントは IP指定して接続する
+	FString ConnectAddress = FString::Printf(TEXT("%s:7777"), *IPAddress);
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*ConnectAddress), true);
 	UE_LOG(LogTemp, Warning, TEXT("ClientConnection:%s"), *IPAddress);
 }

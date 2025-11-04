@@ -7,32 +7,47 @@
 #include "UObject/ConstructorHelpers.h"
 #include "../public/NetWork/Login_HUD.h"
 
-void ALoginMenuGameMode::BeginPlay()
+ALoginMenuGameMode::ALoginMenuGameMode()
 {
-	Super::BeginPlay();
-
-	//APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-	//if (PlayerController != nullptr)
-	//{
-	//	//マウスカーソル表示
-	//	PlayerController->bShowMouseCursor = true;
-	//	PlayerController->bEnableClickEvents = true;
-	//	PlayerController->bEnableMouseOverEvents = true;
-
-	//	// 入力モードをUI専用に設定
-	//	FInputModeUIOnly InputMode;
-	//	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	//	InputMode.SetWidgetToFocus(nullptr); // フォーカスするWidgetがあれば指定
-	//	PlayerController->SetInputMode(InputMode);
-
-	//	UE_LOG(LogTemp, Warning, TEXT("MouseInputSetting"));
-	//}
-
 	if (DefaultPawnClass != nullptr)
 	{
 		DefaultPawnClass = nullptr;
 		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClassSetting_NULL"));
+	}
+
+	UClass* HUD = ALogin_HUD::StaticClass();
+
+	if (HUD != nullptr)
+	{
+		HUDClass = HUD;
+		UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingOK"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingNO"));
+	}
+}
+
+void ALoginMenuGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	if (PlayerController != nullptr)
+	{
+		//マウスカーソル表示
+		PlayerController->bShowMouseCursor = true;
+		PlayerController->bEnableClickEvents = true;
+		PlayerController->bEnableMouseOverEvents = true;
+
+		// 入力モードをUI専用に設定
+		FInputModeUIOnly InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		InputMode.SetWidgetToFocus(nullptr); // フォーカスするWidgetがあれば指定
+		//PlayerController->SetInputMode(InputMode);
+
+		UE_LOG(LogTemp, Warning, TEXT("MouseInputSetting"));
 	}
 
 	//UClass* HUD = ALogin_HUD::StaticClass();

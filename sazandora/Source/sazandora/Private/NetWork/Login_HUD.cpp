@@ -10,24 +10,27 @@ void ALogin_HUD::BeginPlay()
 
 	//自分の画面（ローカル）にだけウィジェットを表示
 	APlayerController* PlayerController = GetOwningPlayerController();
+	LoginWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Login_UI/Login_Widget.Login_Widget_C"));
 
-	
-
-	if (PlayerController != nullptr)
+	if (PlayerController && PlayerController->IsLocalController())
 	{
-		LoginWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Login_UI/Login_Widget.Login_Widget_C"));
-		
 		if (LoginWidgetClass != nullptr)
 		{
 			LoginWidget = CreateWidget<UUserWidget>(PlayerController, LoginWidgetClass);
 			LoginWidget->AddToViewport();
-			UE_LOG(LogTemp, Warning, TEXT("PlayerControllerNONE"));
+			UE_LOG(LogTemp, Warning, TEXT("PlayerControllerOK"));
 			//マウスカーソルを表示
 			PlayerController->bShowMouseCursor = true;
-			PlayerController->SetInputMode(FInputModeUIOnly());
-
+			//PlayerController->SetInputMode(FInputModeUIOnly());
 		}
-		
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerControllerNO"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerControllerNO"));
 	}
 	
 }

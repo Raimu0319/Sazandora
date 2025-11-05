@@ -28,6 +28,9 @@ public:
 	UPROPERTY(BlueprintReadOnly,Replicated)
 	TArray<bool> buylist_crear;			//買い物達成状況
 
+	UFUNCTION()
+	void My_State_Initialize();
+
 	void Random_Item();
 
 	void Buy_Item(int i, bool flg);
@@ -38,10 +41,20 @@ public:
 	class UHUDWidget* wiget_p = nullptr;
 
 	// Blueprintへの通知
-	
 	void OnItemUpdated();
 
-protected:
+	// 変数が変わった場合にOnRep_IsLoadedを実行する
+	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
+	bool is_loaded = false;
+
+	// クライアントからサーバーへ関数の呼び出し
+	UFUNCTION(Server, Reliable)
+	void Server_SetLoaded(bool  load_flg);
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+protected:
+	UFUNCTION()
+	void OnRep_IsLoaded();
+
 };

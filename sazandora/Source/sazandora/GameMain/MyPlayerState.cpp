@@ -11,21 +11,39 @@ AMyPlayerState::AMyPlayerState()
 
 }
 
+// ロードが完了したどうか
+void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
+{
+	is_loaded = load_flg;
+	OnRep_IsLoaded();
+}
+
 void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMyPlayerState, player_buy_list);
 	DOREPLIFETIME(AMyPlayerState,buylist_crear);
+	DOREPLIFETIME(AMyPlayerState,is_loaded);
+}
+
+void AMyPlayerState::OnRep_IsLoaded()
+{
+	UE_LOG(LogTemp, Log, TEXT("ロード中"));
 }
 
 // BeginPlay
 void AMyPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
+void AMyPlayerState::My_State_Initialize()
+{
 	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
 
 	buylist_crear = { false, false, false };
+
+	Random_Item();
 }
 
 // ランダムで購入するアイテムを渡す処理
@@ -92,6 +110,7 @@ bool AMyPlayerState::Is_Cleared() const
 	return false;
 }
 
+// ウィジェットの更新
 void AMyPlayerState::OnItemUpdated()
 {
 	wiget_p->RefreshUI();

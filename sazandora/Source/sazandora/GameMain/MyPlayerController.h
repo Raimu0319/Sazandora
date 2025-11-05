@@ -18,6 +18,13 @@ class SAZANDORA_API AMyPlayerController : public APlayerController
 public:
 	AMyPlayerController();
 
+	// プレイヤーのロード完了をサーバーへ通知する関数
+	UFUNCTION(BlueprintCallable)
+	void NotifyLoaded();
+
+	UFUNCTION()
+	void Create_HUDWidget();
+
 protected:
 	virtual void BeginPlay() override;
 

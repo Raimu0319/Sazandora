@@ -84,16 +84,16 @@ void AMain_Character::BeginPlay()
 	Super::BeginPlay();
 
 	// PlayerStateの取得
-	AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
+	//AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
 
-	MyPlayerState->Random_Item();
+	//MyPlayerState->Random_Item();
 
-	// 数値をFStringに変換
-	for (int32 i = 0; i < 3; i++)
-	{
-		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
-		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
-	}
+	//// 数値をFStringに変換
+	//for (int32 i = 0; i < 3; i++)
+	//{
+	//	FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
+	//	UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+	//}
 
 }
 

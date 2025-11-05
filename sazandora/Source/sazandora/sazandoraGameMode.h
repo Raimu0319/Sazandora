@@ -14,6 +14,12 @@ class AsazandoraGameMode : public AGameModeBase
 public:
 	AsazandoraGameMode();
 
+	UFUNCTION()
+	void CheckAllPlayersLoaded();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StartGame();
+
 protected:
 	virtual AActor* FindPlayerStart_Implementation(AController* player, const FString& IncomingName) override;
 

@@ -9,6 +9,7 @@
 
 ALoginMenuGameMode::ALoginMenuGameMode()
 {
+	UE_LOG(LogTemp, Warning, TEXT("GameMode::LoginMenuGameMode"));
 	if (DefaultPawnClass != nullptr)
 	{
 		DefaultPawnClass = nullptr;

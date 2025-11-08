@@ -9,22 +9,29 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 
-int32 ANetWorkGameModeBase::NextSpawnIndex = 0; // 静的変数
+int32 ANetWorkGameModeBase::NextSpawnIndex; // 静的変数
 
 ANetWorkGameModeBase::ANetWorkGameModeBase()
 {
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPerson/Blueprints/BP_ThirdPersonCharacter"));
-	if (PlayerPawnBPClass.Class != nullptr)
+	if (PlayerPawnBPClass.Succeeded())
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+		UE_LOG(LogTemp, Warning, TEXT("PlayerPawnBPClassOK"));
 	}
-	
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerPawnBPClassNO"));
+	}
+
 	NextSpawnIndex = 0;
 }
 
 void ANetWorkGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
 }
 
 void ANetWorkGameModeBase::StartListenServer()
@@ -56,6 +63,9 @@ AActor* ANetWorkGameModeBase::ChoosePlayerStart_Implementation(AController* Play
 {
 	UE_LOG(LogTemp, Warning, TEXT("ChoosePlayerStart_Implementation called!"));
 
+	UE_LOG(LogTemp, Warning, TEXT("[%s] ChoosePlayerStart called on %s"),
+		HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *GetName());
+
 	TArray<AActor*> PlayerStarts;
 	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
 
@@ -76,6 +86,23 @@ AActor* ANetWorkGameModeBase::ChoosePlayerStart_Implementation(AController* Play
 	AActor* Start = PlayerStarts[Index];
 	UE_LOG(LogTemp, Warning, TEXT("Spawning Player %d at %s"), Index, *Start->GetName());
 	return Start;
+}
+
+void ANetWorkGameModeBase::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if (!HasAuthority()) return; // サーバーでのみ実行
+
+	if (NewPlayer->GetPawn() == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PostLogin: Restarting Player"));
+		RestartPlayer(NewPlayer);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PostLogin: Player already has pawn, skipping Restart"));
+	}
 }
 
 void ANetWorkGameModeBase::Logout(AController* Exiting)

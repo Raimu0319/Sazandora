@@ -23,4 +23,6 @@ protected:
 private:
 	UPROPERTY()
 	UUserWidget* LoginWidget;
+
+	ALogin_HUD();
 };

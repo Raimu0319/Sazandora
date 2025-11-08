@@ -31,7 +31,7 @@ public:
 protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual void Logout(AController* Exiting) override;
-
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 private:
 	static int32 NextSpawnIndex;
 

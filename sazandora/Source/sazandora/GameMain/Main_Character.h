@@ -53,6 +53,9 @@ public:
 	void Set_NPC_Pointer(ANPC_Character* npc_charcter);		// NPCのポインタをセットする関数
 	void Set_Talk_Flg(bool talk_flg);						// Talkフラグのセット
 
+	UFUNCTION(Server, Reliable)
+	void Server_JumpPressed();
+
 private:
 
 	// 例）UPROPERTY(EditAnywhere(エディタ上で編集可能)、Category = 項目名)

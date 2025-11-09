@@ -1,6 +1,7 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "sazandoraGameMode.h"
+#include "Engine/Engine.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
@@ -11,40 +12,102 @@
 
 AsazandoraGameMode::AsazandoraGameMode()
 {
+	// カスタムMainCharacterの設定
 	DefaultPawnClass = AMain_Character::StaticClass();
 
 	// カスタムのPlayerStateクラスの指定
 	PlayerStateClass = AMyPlayerState::StaticClass();
 
+	// カスタムPlayerControllerの設定
 	PlayerControllerClass = AMyPlayerController::StaticClass();
+}
+
+void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	// サーバー自身の場合
+	if (NewPlayer->IsLocalController())
+	{
+		if (AMyPlayerState* player_state = NewPlayer->GetPlayerState<AMyPlayerState>())
+		{
+			player_state->Server_SetLoaded(true);
+		}
+	}
+}
+
+void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
+{
+	//if (!p)
+	//{
+	//	return;
+	//}
+
+	// プレイヤーの買い物リストが全て達成済みかどうか
+	if (p->Is_Cleared())
+	{
+		// テキストの表示
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is Goal"));
+	}
+	else
+	{
+		// テキストの表示
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is not Goal"));
+	}
 }
 
 // 全てのプレイヤーのロードが完了したかどうか
 void AsazandoraGameMode::CheckAllPlayersLoaded()
 {
-	bool all_ready = true;
+	UE_LOG(LogTemp, Log, TEXT("[GM CheckAllPlayersLoaded] Checking players..."));
 
-	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
-	{
-		APlayerController* player_controller = it->Get();
+	// 1フレーム後にチェック（レプリケーションが追いつく）
+	FTimerHandle TimerHandle;
 
-		if (player_controller)
+	// 
+	GetWorldTimerManager().SetTimer(
+		TimerHandle,
+		[this]()
 		{
-			AMyPlayerState* player_state = player_controller->GetPlayerState<AMyPlayerState>();
-			if (!player_state || !player_state->is_loaded)
+			bool bAllReady = true;
+
+			// worldに存在しているプレイヤーを取得
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 			{
-				all_ready = false;
-				break;
+				// 対象のプレイヤーコントローラーの取得
+				if (APlayerController* PC = It->Get())
+				{
+					// プレイヤーコントローラーからAMPlayerStateを取得
+					if (AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>())
+					{
+						UE_LOG(LogTemp, Log, TEXT(" - PC=%s PS=%s is_loaded=%d"), *PC->GetName(), PS ? *PS->GetName() : TEXT("null"), PS ? PS->is_loaded : 0);
+
+						// player_stateに存在するis_loadedがtrueじゃなければ中に入る
+						if (!PS->is_loaded)
+						{
+							bAllReady = false;
+							break;
+						}
+					}
+				}
+
 			}
-		}
-	}
 
-	if (all_ready)
-	{
-		UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
-		Multicast_StartGame();
-	}
-
+			if (bAllReady)
+			{
+				UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
+				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+				{
+					if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
+					{
+							PC->Client_StartGame();
+					}
+				}
+			}
+		},
+		0.1f,  // 0.1秒遅らせる
+		false
+	);
 }
 
 // 全クライアントでゲームを開始する関数
@@ -52,13 +115,11 @@ void AsazandoraGameMode::Multicast_StartGame_Implementation()
 {
 	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
 	{
-
 		AMyPlayerController* my_controller = Cast<AMyPlayerController>(it->Get());
 		if (!my_controller)
 		{
 			continue;
 		}
-
 
 		AMyPlayerState* player_state = my_controller->GetPlayerState<AMyPlayerState>();
 		if (!player_state)
@@ -66,16 +127,7 @@ void AsazandoraGameMode::Multicast_StartGame_Implementation()
 			continue;
 		}
 
-		if (HasAuthority())
-		{
-			player_state->My_State_Initialize();
-		}
-
-		if (my_controller->IsLocalController())
-		{
-			// ホスト（ListenServer）含め、実際に画面を持つ人だけ
-			my_controller->Create_HUDWidget();
-		}
+		player_state->My_State_Initialize();
 	}
 }
 

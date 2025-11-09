@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "sazandoraGameMode.generated.h"
 
+class AMyPlayerState;
+
 UCLASS(minimalapi)
 class AsazandoraGameMode : public AGameModeBase
 {
@@ -19,6 +21,12 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StartGame();
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	// Playerがクリアしているかどうか
+	UFUNCTION()
+	void ClearCheck(AMyPlayerState* p);
 
 protected:
 	virtual AActor* FindPlayerStart_Implementation(AController* player, const FString& IncomingName) override;

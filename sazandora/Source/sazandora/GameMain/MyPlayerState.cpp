@@ -3,32 +3,13 @@
 
 #include "MyPlayerState.h"
 #include "HUDWidget.h"
+#include "sazandora/sazandoraGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 // 初期化
 AMyPlayerState::AMyPlayerState()
 {
-
-}
-
-// ロードが完了したどうか
-void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
-{
-	is_loaded = load_flg;
-	OnRep_IsLoaded();
-}
-
-void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMyPlayerState, player_buy_list);
-	DOREPLIFETIME(AMyPlayerState,buylist_crear);
-	DOREPLIFETIME(AMyPlayerState,is_loaded);
-}
-
-void AMyPlayerState::OnRep_IsLoaded()
-{
-	UE_LOG(LogTemp, Log, TEXT("ロード中"));
+	bReplicates = true;
 }
 
 // BeginPlay
@@ -37,13 +18,94 @@ void AMyPlayerState::BeginPlay()
 	Super::BeginPlay();
 }
 
+// レプリケーションの設定
+void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMyPlayerState, player_buy_list);
+	DOREPLIFETIME(AMyPlayerState, buylist_crear);
+	DOREPLIFETIME(AMyPlayerState, is_loaded);
+}
+
+// Playerの初期化
 void AMyPlayerState::My_State_Initialize()
 {
+	// アイテムリストの達成状況リストの要素数の設定
 	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
 
+	// 要素の初期化
 	buylist_crear = { false, false, false };
 
+	// アイテムリストの作成
 	Random_Item();
+
+	//// 数値をFStringに変換
+	for (int32 i = 0; i < 3; i++)
+	{
+		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), player_buy_list[i]);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+	}
+
+}
+
+// ロードが完了したどうか
+void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
+{
+	AController* OwnerController = Cast<AController>(GetOwner());
+	UE_LOG(LogTemp, Log, TEXT("[PS Server_SetLoaded] %s called by %s | load=%d | HasAuthority=%d"),
+		*GetName(),
+		OwnerController ? *OwnerController->GetName() : TEXT("None"),
+		load_flg,
+		HasAuthority());
+	// do NOT call OnRep manually
+
+	is_loaded = load_flg;
+
+	// サーバーのみ確認
+	if (is_loaded && HasAuthority())
+	{
+		//// クライアント自身に通知
+		//Client_OnLoaded();
+
+		// サーバーのみ実行
+		// HasAuthorityでサーバーかクライアントかを調べる
+		// trueの場合はホストまたはサーバーでの実行
+		// falseの場合はクライアントでの実行
+		//if (HasAuthority())
+		//{
+		//	AsazandoraGameMode* game_mode = GetWorld()->GetAuthGameMode<AsazandoraGameMode>();
+
+		//	// nullチェック
+		//	if (game_mode)
+		//	{
+		//		game_mode->CheckAllPlayersLoaded();
+		//	}
+		//}
+
+			// タイマーハンドルの設定
+			// timerを一位に選別し、後で操作（停止、チェックなど）するために使用するハンドル
+			FTimerHandle DelayHandle;
+
+			// ゲームワールドのタイマーマネージャーに、新しいtimerを設定するように指示
+			GetWorld()->GetTimerManager().SetTimer(DelayHandle, [this]()
+				{
+					// タイマーが切れたときに実行する関数
+					// sazandoraGameModeを参照できるかどうか
+					if (AsazandoraGameMode* GM = GetWorld()->GetAuthGameMode<AsazandoraGameMode>())
+					{
+						// 参照に成功した場合全てのプレイヤーがチェックに成功しているかを確認
+						GM->CheckAllPlayersLoaded();
+					}
+				}, 0.4f, false);		// 0.3 : 実行を遅延する時間		// ループをするかどうか
+	}
+
+}
+
+void AMyPlayerState::Client_OnLoaded_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("ロード中"));
+
+	UE_LOG(LogTemp, Log, TEXT("[PS OnRep_IsLoaded] %s -> %d | NetMode=%d"), *GetName(), is_loaded, (int)GetNetMode());
 }
 
 // ランダムで購入するアイテムを渡す処理

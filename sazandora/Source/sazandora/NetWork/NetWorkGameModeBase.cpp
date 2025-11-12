@@ -8,6 +8,13 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Json.h"
+#include "JsonUtilities.h"
+#include "Sockets.h"
+#include "SocketSubsystem.h"
 
 int32 ANetWorkGameModeBase::NextSpawnIndex; // 静的変数
 
@@ -25,12 +32,14 @@ ANetWorkGameModeBase::ANetWorkGameModeBase()
 	}
 
 	NextSpawnIndex = 0;
+
 }
 
 void ANetWorkGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	UE_LOG(LogTemp, Warning, TEXT("Address"));
+	RegisterServerToAPI();
 	UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
 }
 
@@ -115,4 +124,71 @@ void ANetWorkGameModeBase::Logout(AController* Exiting)
 		NextSpawnIndex--;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextSpawnIndex);
+}
+
+void ANetWorkGameModeBase::RegisterServerToAPI()
+{
+	FString ServerName = "SazandoraServer";
+	FString ServerAddress = Get_IPAddress(); // 実際は外部IPを取得する方法もあり
+	int32 PlayerCount = 0;
+	int32 MaxPlayers = 8;
+
+	UE_LOG(LogTemp, Warning, TEXT("Address:	%s"), *ServerAddress);
+	UE_LOG(LogTemp, Warning, TEXT("Address"));
+
+	// JSONデータ作成
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	JsonObject->SetStringField(TEXT("name"), ServerName);
+	JsonObject->SetStringField(TEXT("address"), ServerAddress);
+	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
+	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+
+	// HTTPリクエスト作成
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(TEXT("http://localhost:3000/register")); // Node.js APIサーバーのURL
+	Request->SetVerb(TEXT("POST"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetContentAsString(OutputString);
+
+	// コールバック設定
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
+		{
+			if (bSuccess && Res.IsValid())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server Registered: %s"), *Res->GetContentAsString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to register server"));
+			}
+		});
+
+	// 実行
+	Request->ProcessRequest();
+}
+
+FString ANetWorkGameModeBase::Get_IPAddress()
+{
+	bool bCanBind = false;
+	TSharedRef<FInternetAddr> Addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBind);
+
+	// デフォルトのポート（7777など）を取得
+	UWorld* World = GetWorld();
+	uint16 Port = 0;
+	if (World && World->URL.Port != 0)
+	{
+		Port = World->URL.Port;
+	}
+	else
+	{
+		// Fallback: 一般的なデフォルトポート
+		Port = 7777;
+	}
+
+	Addr->SetPort(Port);
+	return Addr->ToString(true); // falseにするとポート番号を含まない
 }

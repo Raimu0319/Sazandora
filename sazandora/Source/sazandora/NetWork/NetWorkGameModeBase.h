@@ -35,4 +35,7 @@ protected:
 private:
 	static int32 NextSpawnIndex;
 
+	void RegisterServerToAPI();
+	FString Get_IPAddress();
+
 };

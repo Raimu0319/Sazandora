@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
 #include "../public/NetWork/Login_HUD.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 
 ALoginMenuGameMode::ALoginMenuGameMode()
 {
@@ -51,29 +54,27 @@ void ALoginMenuGameMode::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("MouseInputSetting"));
 	}
 
-	//UClass* HUD = ALogin_HUD::StaticClass();
+}
 
-	//if (HUD != nullptr)
-	//{
-	//	HUDClass = HUD;
-	//	UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingOK"));
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingNO"));
-	//}
+void ALoginMenuGameMode::GetServerListFromMaster()
+{
+	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL("http://127.0.0.1:3000/list");
+	Request->SetVerb("GET");
+	Request->SetHeader("Content-Type", "application/json");
 
-	/*TSubclassOf<UUserWidget> WidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Login_UI/Login_Widget.Login_Widget_C"));
-	
-	if (WidgetClass)
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bWasSuccessful)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("WidgetLoadOK"));
-		UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetClass);
-
-		if (Widget)
+		if (bWasSuccessful)
 		{
-			Widget->AddToViewport();
-			UE_LOG(LogTemp, Warning, TEXT("WidgetCreateOK"));
+			FString ResponseString = Response->GetContentAsString();
+			UE_LOG(LogTemp, Log, TEXT("サーバー一覧: %s"), *ResponseString);
 		}
-	}*/
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("サーバー一覧取得失敗"));
+		}
+	});
+
+	Request->ProcessRequest();
 }

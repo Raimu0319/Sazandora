@@ -20,4 +20,5 @@ protected:
 private:
 	ALoginMenuGameMode();
 
+	void GetServerListFromMaster();
 };

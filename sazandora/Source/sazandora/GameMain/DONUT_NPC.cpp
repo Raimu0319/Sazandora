@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "JUICE_NPC.h"
+#include "DONUT_NPC.h"
 #include "MyPlayerState.h"
 #include "Main_Character.h"
 
-AJUICE_NPC::AJUICE_NPC()
+ADONUT_NPC::ADONUT_NPC()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,75 +14,39 @@ AJUICE_NPC::AJUICE_NPC()
 	Is_Talk_Flg = false;
 
 	// 販売するアイテム
-	e_mytype = E_ITEM_TYPE::E_JUICE;
+	e_mytype = E_ITEM_TYPE::E_DONUT;
 }
 
 // Called when the game starts or when spawned
-void AJUICE_NPC::BeginPlay()
+void ADONUT_NPC::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
 // Called every frame
-void AJUICE_NPC::Tick(float DeltaTime)
+void ADONUT_NPC::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
 // 会話開始関数（プレイヤーが近づいたときなどに呼ぶ）
-void AJUICE_NPC::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void ADONUT_NPC::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//// サーバーでのみ実行
-	//if (!HasAuthority())
-	//{
-	//	return;
-	//}
-
-	//// Playerが会話範囲に入ったかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
-	//if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
-	//{
-	//	Is_Talk_Flg = true;
-
-	//	player->Set_NPC_Pointer(this);
-	//	player->Set_Talk_Flg(this->Is_Talk_Flg);
-	//}
-
 	Super::OnPlayerEnterRange(OverlappedComp, OtherActor, OtherComo, OtherBodyIndex, bFromSweep, SweepResult);
-
 }
 
-void AJUICE_NPC::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
+void ADONUT_NPC::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	//// サーバーでのみ実行
-	//if (!HasAuthority())
-	//{
-	//	return;
-	//}
-
-	//// playerが会話範囲から出たかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
-	//if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
-	//{
-	//	// テキストの表示
-	//	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is out"));
-
-	//	Is_Talk_Flg = false;
-
-	//	player->Set_NPC_Pointer(nullptr);
-	//	player->Set_Talk_Flg(this->Is_Talk_Flg);
-	//}
-
 	Super::OnPlayerLeaveRange(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
-
 }
 
-// 会話イベント
-void AJUICE_NPC::Talk_Event(AMain_Character* player)
+void ADONUT_NPC::Talk_Event(AMain_Character* player)
 {
 	// プレイヤーの買い物リストを保存
 	//TArray<E_ITEM_TYPE> p_buylist = player->Get_ItemList();
-
+	
 	// サーバーのみ実行
 	if (!HasAuthority())
 	{
@@ -114,4 +78,5 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 		// テキストの表示
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is not buy"));
 	}
+
 }

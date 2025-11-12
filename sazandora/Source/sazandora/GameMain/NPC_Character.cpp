@@ -3,11 +3,15 @@
 
 #include "NPC_Character.h"
 #include "Main_Character.h"
+#include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerController.h"
 
 // Sets default values
 ANPC_Character::ANPC_Character()
 {
+	// クラスを複製可能にするフラグ
+	bReplicates = true;
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -41,22 +45,23 @@ ANPC_Character::ANPC_Character()
 void ANPC_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-	
 }
 
 // Called every frame
 void ANPC_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // 会話開始関数（プレイヤーが近づいたときなどに呼ぶ）
 void ANPC_Character::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// Playerが会話範囲に入ったかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
 	if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
 	{
@@ -70,6 +75,11 @@ void ANPC_Character::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AAc
 void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// playerが会話範囲から出たかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
 	if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
 	{
@@ -87,4 +97,10 @@ void ANPC_Character::Talk_Event(AMain_Character* player)
 {
 	// テキストの表示
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is in"));
+}
+
+void ANPC_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ANPC_Character, Is_Talk_Flg);
 }

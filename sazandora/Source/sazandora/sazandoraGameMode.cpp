@@ -38,11 +38,6 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 
 void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 {
-	//if (!p)
-	//{
-	//	return;
-	//}
-
 	// プレイヤーの買い物リストが全て達成済みかどうか
 	if (p->Is_Cleared())
 	{
@@ -70,6 +65,7 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 		[this]()
 		{
 			bool bAllReady = true;
+			int32 ready_player = 0;
 
 			// worldに存在しているプレイヤーを取得
 			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -88,12 +84,14 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 							bAllReady = false;
 							break;
 						}
+
+						ready_player++;
+
 					}
 				}
-
 			}
 
-			if (bAllReady)
+			if (bAllReady && ready_player >= 2)
 			{
 				UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
 				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)

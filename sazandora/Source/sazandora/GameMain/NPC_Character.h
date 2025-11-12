@@ -22,7 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// プレイヤーが会話範囲にいるかどうか
-	UPROPERTY(VisibleAnywhere, Category = "NPC")
+	UPROPERTY(VisibleAnywhere, Category = "NPC",Replicated)
 	bool Is_Talk_Flg;
 
 	// 販売するアイテム
@@ -41,7 +41,7 @@ public:
 	virtual void OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	// 離れたとき
+	// プレイヤーが離れたとき
 	UFUNCTION()
 	virtual void OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
@@ -49,5 +49,8 @@ public:
 	// 会話イベント
 	UFUNCTION()
 	virtual void Talk_Event(AMain_Character* player);
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };

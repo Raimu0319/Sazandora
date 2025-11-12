@@ -25,6 +25,11 @@ void UGoalBoxComponent::BeginPlay()
 
 void UGoalBoxComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
 	// 対象のActorがCharacterClassを継承しているか
 	if (OtherActor && OtherActor->IsA(ACharacter::StaticClass()))
 	{

@@ -128,17 +128,21 @@ void AMyPlayerController::Create_HUDWidget()
 		return;
 	}
 
+	// 所有権が自分で、HUDWidget_classがnullptrではなければ
 	if (IsLocalController() && HUDWidget_class)
 	{
-		UHUDWidget* HUDWidget = CreateWidget<UHUDWidget>(this, HUDWidget_class);
+		// UHUDWidgetの生成
+		HUDWidget_pointer = CreateWidget<UHUDWidget>(this, HUDWidget_class);
 		
-		if (HUDWidget)
+		// 生成に失敗してなければ
+		if (HUDWidget_pointer)
 		{
-			HUDWidget->AddToViewport();
+			// 画面に表示
+			HUDWidget_pointer->AddToViewport();
 
 			// PlayerStateの紐づけ
 			AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
-			HUDWidget->InitializeWidget(ps);
+			HUDWidget_pointer->InitializeWidget(ps);		// Widgetの初期化
 		}
 	}
 }

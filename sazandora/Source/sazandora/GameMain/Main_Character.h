@@ -43,7 +43,11 @@ public:
 	void Dash(float DeltaTime);		
 
 	// 会話キー
+	UFUNCTION(Server,Reliable)
 	void On_Talk_Eventkey();
+
+	UFUNCTION(Server, Reliable)
+	void Server_Talk_NPC();
 
 	// 移動処理
 	void MoveForward(float value);	//前後移動処理

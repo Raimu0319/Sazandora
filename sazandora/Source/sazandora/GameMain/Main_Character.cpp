@@ -75,26 +75,13 @@ AMain_Character::AMain_Character()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	AutoPossessPlayer = EAutoReceiveInput::Disabled;
 }
 
 // Called when the game starts or when spawned
 void AMain_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// PlayerStateの取得
-	//AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
-
-	//MyPlayerState->Random_Item();
-
-	//// 数値をFStringに変換
-	//for (int32 i = 0; i < 3; i++)
-	//{
-	//	FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
-	//	UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
-	//}
-
 }
 
 // Called every frame
@@ -138,6 +125,12 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 //ジャンプボタンが押されたら
 void AMain_Character::OnJumpPressed()
 {
+	if (!HasAuthority())
+	{
+		Server_JumpPressed();
+		return;
+	}
+
 	//	空中にいる場合はジャンプをしないようにする
 	if (GetCharacterMovement()->IsFalling())
 	{
@@ -155,6 +148,11 @@ void AMain_Character::OnJumpPressed()
 	// bXYOverride = XY成分（水平）をfalseで既存の速度に加算し、trueで既存の値を書き換える
 	// bZOverride = Z成分（垂直）を既存のZ速度で上書きする(trueの場合現在のZが消えて新しいZに書き変わる）
 	LaunchCharacter(FVector(0, 0, Min_Jump_Strength), false, true);
+}
+
+void AMain_Character::Server_JumpPressed_Implementation()
+{
+	OnJumpPressed();
 }
 
 //ジャンプボタンが離された時

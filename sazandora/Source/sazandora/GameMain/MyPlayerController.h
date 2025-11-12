@@ -18,6 +18,9 @@ class SAZANDORA_API AMyPlayerController : public APlayerController
 public:
 	AMyPlayerController();
 
+	UPROPERTY()
+	bool bAlreadyNotified = false;
+
 	// プレイヤーのロード完了をサーバーへ通知する関数
 	UFUNCTION(BlueprintCallable)
 	void NotifyLoaded();
@@ -25,10 +28,19 @@ public:
 	UFUNCTION()
 	void Create_HUDWidget();
 
+	UFUNCTION(Client, Reliable)
+	void Client_StartGame();
+
+	// AControllerクラスまたはAPawnクラスでPlayerStateのポインタが
+	// クライアントにレプリケートされた時に呼び出されるコールバック関数
+	virtual void OnRep_PlayerState() override;
+
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UHUDWidget> HUDWidget_class;
+
+	UHUDWidget* HUDWidget_pointer = nullptr;
 	
 };

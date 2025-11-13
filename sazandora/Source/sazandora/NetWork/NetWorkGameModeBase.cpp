@@ -40,7 +40,7 @@ void ANetWorkGameModeBase::BeginPlay()
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("Address"));
 	RegisterServerToAPI();
-	//UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
 }
 
 void ANetWorkGameModeBase::StartListenServer()

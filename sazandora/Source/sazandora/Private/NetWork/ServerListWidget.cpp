@@ -34,7 +34,16 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
 
 void UServerListWidget::OnConnectClicked()
 {
+   /* FString ConnectString = FString::Printf(TEXT("%s"), *ServerIP);
+    UE_LOG(LogTemp, Log, TEXT("Connecting to server: %s"), *ConnectString);
+    UGameplayStatics::OpenLevel(GetWorld(), FName(*ConnectString));*/
+
     FString ConnectString = FString::Printf(TEXT("%s"), *ServerIP);
     UE_LOG(LogTemp, Log, TEXT("Connecting to server: %s"), *ConnectString);
-    UGameplayStatics::OpenLevel(GetWorld(), FName(*ConnectString));
+
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (PC)
+    {
+        PC->ClientTravel(ConnectString, TRAVEL_Absolute);
+    }
 }

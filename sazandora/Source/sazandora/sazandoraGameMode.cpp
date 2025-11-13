@@ -10,6 +10,13 @@
 #include "GameMain/MyPlayerState.h"
 #include "GameMain/MyPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Json.h"
+#include "JsonUtilities.h"
+#include "Sockets.h"
+#include "SocketSubsystem.h"
 
 AsazandoraGameMode::AsazandoraGameMode()
 {
@@ -51,6 +58,9 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 			ps->is_host = true;
 		}
 	}
+
+	UpdateServerInfoOnAPI();
+	RegisterServerToAPI();
 }
 
 void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
@@ -210,4 +220,126 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 
 	// デフォルトのスポーン地点を返り値として渡す
 	return Super::FindPlayerStart_Implementation(player, IncomingName);
+}
+
+void AsazandoraGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	//ログアウトしたらNextSpawnIndexを減らす
+	if (NextPlayerIndex > 0)
+	{
+		NextPlayerIndex--;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextPlayerIndex);
+
+	UpdateServerInfoOnAPI();
+	RegisterServerToAPI();
+}
+
+void AsazandoraGameMode::RegisterServerToAPI()
+{
+	FString ServerName = "SazandoraServer";
+	FString ServerAddress = Get_IPAddress(); // 実際は外部IPを取得する方法もあり
+	int32 PlayerCount = NextPlayerIndex;
+	int32 MaxPlayers = 4;
+
+	UE_LOG(LogTemp, Warning, TEXT("Address:	%s"), *ServerAddress);
+	UE_LOG(LogTemp, Warning, TEXT("Address"));
+
+	// JSONデータ作成
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	JsonObject->SetStringField(TEXT("name"), ServerName);
+	JsonObject->SetStringField(TEXT("address"), ServerAddress);
+	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
+	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+
+	// HTTPリクエスト作成
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(TEXT("http://localhost:3000/register")); // Node.js APIサーバーのURL
+	Request->SetVerb(TEXT("POST"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetContentAsString(OutputString);
+
+	// コールバック設定
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
+		{
+			if (bSuccess && Res.IsValid())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server Registered: %s"), *Res->GetContentAsString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to register server"));
+			}
+		});
+
+	// 実行
+	Request->ProcessRequest();
+}
+
+FString AsazandoraGameMode::Get_IPAddress()
+{
+	bool bCanBind = false;
+	TSharedRef<FInternetAddr> Addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBind);
+
+	// デフォルトのポート（7777など）を取得
+	UWorld* World = GetWorld();
+	uint16 Port = 0;
+	if (World && World->URL.Port != 0)
+	{
+		Port = World->URL.Port;
+	}
+	else
+	{
+		// Fallback: 一般的なデフォルトポート
+		Port = 7777;
+	}
+
+	Addr->SetPort(Port);
+	return Addr->ToString(true); // falseにするとポート番号を含まない
+}
+
+void AsazandoraGameMode::UpdateServerInfoOnAPI()
+{
+	// APIエンドポイント
+	FString Url = TEXT("http://127.0.0.1:3000/api/servers/update");
+
+	int32 PlayerCount = NextPlayerIndex;
+	int32 MaxPlayers = 4;
+
+	// JSONオブジェクト作成
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	JsonObject->SetStringField(TEXT("name"), TEXT("SazandoraServer"));
+	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
+	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+
+	// HTTPリクエスト作成
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(Url);
+	Request->SetVerb(TEXT("PUT"));  // ここが「更新」
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetContentAsString(OutputString);
+
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			if (bWasSuccessful && Response->GetResponseCode() == 200)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server info updated successfully."));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to update server info: %s"), *Response->GetContentAsString());
+			}
+		});
+
+	Request->ProcessRequest();
 }

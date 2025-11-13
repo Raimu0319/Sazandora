@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Public/NetWork/LogInWidget.h"
 #include "GameFramework/GameModeBase.h"
 #include "sazandoraGameMode.generated.h"
 
@@ -36,7 +37,12 @@ protected:
 	bool start_flg = false;
 
 	virtual AActor* FindPlayerStart_Implementation(AController* player, const FString& IncomingName) override;
+	virtual void Logout(AController* Exiting) override;
 
 private:
 	int32 NextPlayerIndex = 0;
+
+	void RegisterServerToAPI();
+	void UpdateServerInfoOnAPI();
+	FString Get_IPAddress();
 };

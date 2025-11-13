@@ -40,7 +40,7 @@ void ANetWorkGameModeBase::BeginPlay()
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("Address"));
 	RegisterServerToAPI();
-	UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("Current GameMode: %s"), *GetClass()->GetName());
 }
 
 void ANetWorkGameModeBase::StartListenServer()
@@ -112,6 +112,9 @@ void ANetWorkGameModeBase::PostLogin(APlayerController* NewPlayer)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PostLogin: Player already has pawn, skipping Restart"));
 	}
+
+	UpdateServerInfoOnAPI();
+	RegisterServerToAPI();
 }
 
 void ANetWorkGameModeBase::Logout(AController* Exiting)
@@ -124,14 +127,17 @@ void ANetWorkGameModeBase::Logout(AController* Exiting)
 		NextSpawnIndex--;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextSpawnIndex);
+
+	UpdateServerInfoOnAPI();
+	RegisterServerToAPI();
 }
 
 void ANetWorkGameModeBase::RegisterServerToAPI()
 {
 	FString ServerName = "SazandoraServer";
 	FString ServerAddress = Get_IPAddress(); // 実際は外部IPを取得する方法もあり
-	int32 PlayerCount = 0;
-	int32 MaxPlayers = 8;
+	int32 PlayerCount = NextSpawnIndex;
+	int32 MaxPlayers = 4;
 
 	UE_LOG(LogTemp, Warning, TEXT("Address:	%s"), *ServerAddress);
 	UE_LOG(LogTemp, Warning, TEXT("Address"));
@@ -191,4 +197,44 @@ FString ANetWorkGameModeBase::Get_IPAddress()
 
 	Addr->SetPort(Port);
 	return Addr->ToString(true); // falseにするとポート番号を含まない
+}
+
+void ANetWorkGameModeBase::UpdateServerInfoOnAPI()
+{
+	// APIエンドポイント
+	FString Url = TEXT("http://127.0.0.1:3000/api/servers/update");
+
+	int32 PlayerCount = NextSpawnIndex;
+	int32 MaxPlayers = 4;
+
+	// JSONオブジェクト作成
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	JsonObject->SetStringField(TEXT("name"), TEXT("SazandoraServer"));
+	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
+	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+
+	// HTTPリクエスト作成
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(Url);
+	Request->SetVerb(TEXT("PUT"));  // ここが「更新」
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetContentAsString(OutputString);
+
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			if (bWasSuccessful && Response->GetResponseCode() == 200)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Server info updated successfully."));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to update server info: %s"), *Response->GetContentAsString());
+			}
+		});
+
+	Request->ProcessRequest();
 }

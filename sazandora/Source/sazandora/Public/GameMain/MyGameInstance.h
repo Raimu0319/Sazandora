@@ -6,24 +6,6 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
-USTRUCT(BlueprintType)
-struct FServerInfo
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadWrite)
-    FString ServerName;
-
-    UPROPERTY(BlueprintReadWrite)
-    FString IPAddress;
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 CurrentPlayers;
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 MaxPlayers;
-};
-
 /**
  * 
  */
@@ -33,12 +15,11 @@ class SAZANDORA_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-    void MyGameInstance();
+    virtual void Init() override;
+    virtual void Shutdown() override;
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FServerInfo> ServerList;
-
-    void AddServerInfo(const FServerInfo& Info);
-
-    const TArray<FServerInfo>& GetServerList() const;
+private:
+	void StartAPIServer();
+	void StopAPIServer();
+	FProcHandle NodeProcessHandle;
 };

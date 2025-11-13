@@ -36,6 +36,7 @@ private:
 	static int32 NextSpawnIndex;
 
 	void RegisterServerToAPI();
+	void UpdateServerInfoOnAPI();
 	FString Get_IPAddress();
 
 };

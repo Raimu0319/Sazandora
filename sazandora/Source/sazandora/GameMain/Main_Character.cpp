@@ -307,7 +307,7 @@ void AMain_Character::Dash(float DeltaTime)
 }
 
 // 会話キー
-void AMain_Character::On_Talk_Eventkey()
+void AMain_Character::On_Talk_Eventkey_Implementation()
 {
 	if (TargetNPC != nullptr)
 	{
@@ -318,10 +318,15 @@ void AMain_Character::On_Talk_Eventkey()
 			return;
 		}
 
-		if (Is_Talk)
-		{
-			TargetNPC->Talk_Event(this);
-		}
+		Server_Talk_NPC();
+	}
+}
+
+void AMain_Character::Server_Talk_NPC_Implementation()
+{
+	if (TargetNPC && Is_Talk)
+	{
+		TargetNPC->Talk_Event(this);
 	}
 }
 

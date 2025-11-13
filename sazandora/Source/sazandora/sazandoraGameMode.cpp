@@ -148,7 +148,33 @@ void AsazandoraGameMode::Start_Game()
 	}
 
 	//Multicast_StartGame();
+}
 
+// 全てのプレイヤーのロードが完了したかどうか
+void AsazandoraGameMode::CheckAllPlayersLoaded()
+{
+	bool all_ready = true;
+
+	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+	{
+		APlayerController* player_controller = it->Get();
+
+		if (player_controller)
+		{
+			AMyPlayerState* player_state = player_controller->GetPlayerState<AMyPlayerState>();
+			if (!player_state || !player_state->is_loaded)
+			{
+				all_ready = false;
+				break;
+			}
+		}
+	}
+
+	if (all_ready)
+	{
+		UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
+		Multicast_StartGame();
+	}
 }
 
 // 全クライアントでゲームを開始する関数
@@ -169,6 +195,17 @@ void AsazandoraGameMode::Multicast_StartGame_Implementation()
 		}
 
 		player_state->My_State_Initialize();
+
+		if (HasAuthority())
+		{
+			player_state->My_State_Initialize();
+		}
+
+		if (my_controller->IsLocalController())
+		{
+			// ホスト（ListenServer）含め、実際に画面を持つ人だけ
+			my_controller->Create_HUDWidget();
+		}
 	}
 }
 

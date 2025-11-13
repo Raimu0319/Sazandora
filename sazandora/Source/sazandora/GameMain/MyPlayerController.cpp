@@ -11,6 +11,7 @@ AMyPlayerController::AMyPlayerController()
 	static ConstructorHelpers::FClassFinder<UHUDWidget> widgetclass(TEXT("/Game/ThirdPerson/widget/BP_HUDWidget2"));
 	static ConstructorHelpers::FClassFinder<UStartWaitWidget> start_wait_widgetclass(TEXT("/Game/ThirdPerson/widget/BP_StartWaitWidget"));
 
+
 	// widgetclssが見つかっているか
 	if (widgetclass.Succeeded())
 	{
@@ -34,9 +35,6 @@ AMyPlayerController::AMyPlayerController()
 		// 参照できない場合はログを出力
 		UE_LOG(LogTemp, Log, TEXT("start_wait_widgetclass is not find..."));
 	}
-
-
-
 }
 
 void AMyPlayerController::Server_RequestStartGame_Implementation()
@@ -100,10 +98,56 @@ void AMyPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	// キャラやUIのロードが完了したタイミングで通知
-	//NotifyLoaded();
+	NotifyLoaded();
 
-	UE_LOG(LogTemp, Log, TEXT("[PC BeginPlay] %s | NetMode=%d | IsLocal=%d | Role=%d | RemoteRole=%d"),
-		*GetName(), (int)GetNetMode(), IsLocalController(), (int)GetLocalRole(), (int)GetRemoteRole());
+}
+
+void AMyPlayerController::NotifyLoaded()
+{
+	AMyPlayerState* player_state = GetPlayerState <AMyPlayerState>();
+
+	if (!player_state)
+	{
+
+		UE_LOG(LogTemp, Warning, TEXT("[%s] NotifyLoaded skipped: PlayerState not ready"), *GetName());
+		return;
+	}
+
+	// serverへ自分のロード完了を通知
+	player_state->Server_SetLoaded(true);
+
+	// サーバーのみ実行
+	// HasAuthorityでサーバーかクライアントかを調べる
+	// trueの場合はホストまたはサーバーでの実行
+	// falseの場合はクライアントでの実行
+	if (HasAuthority())
+	{
+		AsazandoraGameMode* gamemode = GetWorld()->GetAuthGameMode<AsazandoraGameMode>();
+		if (gamemode)
+		{
+			gamemode->CheckAllPlayersLoaded();
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[%s] NotifyLoaded() called"), *GetName());
+}
+
+// HUDWidgetの作成
+void AMyPlayerController::Create_HUDWidget()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	if (HUDWidget_class)
+	{
+		UHUDWidget* HUDWidget = CreateWidget<UHUDWidget>(this, HUDWidget_class);
+		HUDWidget->AddToViewport();
+
+		UE_LOG(LogTemp, Log, TEXT("[PC BeginPlay] %s | NetMode=%d | IsLocal=%d | Role=%d | RemoteRole=%d"),
+			*GetName(), (int)GetNetMode(), IsLocalController(), (int)GetLocalRole(), (int)GetRemoteRole());
+	}
 }
 
 void AMyPlayerController::NotifyLoaded()

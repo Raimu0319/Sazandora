@@ -12,6 +12,26 @@ AMyPlayerState::AMyPlayerState()
 	bReplicates = true;
 }
 
+// ロードが完了したどうか
+void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
+{
+	is_loaded = load_flg;
+	OnRep_IsLoaded();
+}
+
+void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMyPlayerState, player_buy_list);
+	DOREPLIFETIME(AMyPlayerState,buylist_crear);
+	DOREPLIFETIME(AMyPlayerState,is_loaded);
+}
+
+void AMyPlayerState::OnRep_IsLoaded()
+{
+	UE_LOG(LogTemp, Log, TEXT("ロード中"));
+}
+
 // BeginPlay
 void AMyPlayerState::BeginPlay()
 {
@@ -31,7 +51,6 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 // Playerの初期化
 void AMyPlayerState::My_State_Initialize()
 {
-	// アイテムリストの達成状況リストの要素数の設定
 	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
 
 	// 要素の初期化
@@ -46,7 +65,6 @@ void AMyPlayerState::My_State_Initialize()
 		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), player_buy_list[i]);
 		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
 	}
-
 }
 
 // ロードが完了したどうか
@@ -107,6 +125,9 @@ void AMyPlayerState::Client_OnLoaded_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("ロード中"));
 
 	UE_LOG(LogTemp, Log, TEXT("[PS OnRep_IsLoaded] %s -> %d | NetMode=%d"), *GetName(), is_loaded, (int)GetNetMode());
+
+	Random_Item();
+
 }
 
 // ランダムで購入するアイテムを渡す処理

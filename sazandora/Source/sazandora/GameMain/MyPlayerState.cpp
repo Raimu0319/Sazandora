@@ -25,6 +25,7 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMyPlayerState, player_buy_list);
 	DOREPLIFETIME(AMyPlayerState, buylist_crear);
 	DOREPLIFETIME(AMyPlayerState, is_loaded);
+	DOREPLIFETIME(AMyPlayerState, is_host);
 }
 
 // Playerの初期化

@@ -1,6 +1,7 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "sazandoraGameMode.h"
+#include "GameFramework/GameStateBase.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
@@ -32,6 +33,22 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 		if (AMyPlayerState* player_state = NewPlayer->GetPlayerState<AMyPlayerState>())
 		{
 			player_state->Server_SetLoaded(true);
+		}
+	}
+
+	AGameStateBase* gs = GameState;
+	if (!gs)
+	{
+		return;
+	}
+
+	if (gs->PlayerArray.Num() == 1)
+	{
+		AMyPlayerState* ps = NewPlayer->GetPlayerState<AMyPlayerState>();
+
+		if (ps)
+		{
+			ps->is_host = true;
 		}
 	}
 }
@@ -91,7 +108,12 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 				}
 			}
 
-			if (bAllReady && ready_player >= 2)
+			if (bAllReady)
+			{
+				start_flg = true;
+			}
+
+			/*if (bAllReady && ready_player >= 2)
 			{
 				UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
 				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -101,11 +123,32 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 							PC->Client_StartGame();
 					}
 				}
-			}
+			}*/
 		},
 		0.1f,  // 0.1秒遅らせる
 		false
 	);
+}
+
+void AsazandoraGameMode::Start_Game()
+{
+	if (!start_flg)
+	{
+		UE_LOG(LogTemp, Log, TEXT("start_flg = false!!"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
+		{
+			PC->Client_StartGame();
+		}
+	}
+
+	//Multicast_StartGame();
+
 }
 
 // 全クライアントでゲームを開始する関数

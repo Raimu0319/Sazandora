@@ -8,7 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "../../NetWork/NetWorkGameModeBase.h"
 #include "../Public/NetWork/ServerListWidget.h"
-#include "GameMain/MyGameInstance.h"
+
 
 ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -32,14 +32,14 @@ void ULogInWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (ServerButton)
+	if (HostButton)
 	{
-		ServerButton->OnClicked.AddDynamic(this, &ULogInWidget::OnServerButtonClicked);
+		HostButton->OnClicked.AddDynamic(this, &ULogInWidget::OnHostButtonClicked);
 	}
 
-	if (ClientButton)
+	if (JoinButton)
 	{
-		ClientButton->OnClicked.AddDynamic(this, &ULogInWidget::OnClientButtonClicked);
+		JoinButton->OnClicked.AddDynamic(this, &ULogInWidget::OnJoinButtonClicked);
 	}
 
 	if (RefreshButton)
@@ -47,12 +47,17 @@ void ULogInWidget::NativeConstruct()
 		RefreshButton->OnClicked.AddDynamic(this, &ULogInWidget::OnRefreshServerListClicked);
 	}
 
+	if (BackButton)
+	{
+		BackButton->OnClicked.AddDynamic(this, &ULogInWidget::OnBackButtonClicked);
+	}
+
 	// 起動時にも1回取得
 	OnRefreshServerListClicked();
 }
 
 
-void ULogInWidget::OnServerButtonClicked()
+void ULogInWidget::OnHostButtonClicked()
 {
 	//サーバー起動
 	//サーバー起動用の実行ファイルがあるファイルパスを指定
@@ -86,24 +91,26 @@ void ULogInWidget::OnRefreshServerListClicked()
 	Request->ProcessRequest();
 }
 
-
-void ULogInWidget::OnClientButtonClicked()
+void ULogInWidget::OnBackButtonClicked()
 {
-	if (!TextBoxIPAddress) return;
+	HostButton->SetVisibility(ESlateVisibility::Visible);
+	JoinButton->SetVisibility(ESlateVisibility::Visible);
+	ServerListScrollBox->SetVisibility(ESlateVisibility::Hidden);
+	RefreshButton->SetVisibility(ESlateVisibility::Hidden);
+	BackButton->SetVisibility(ESlateVisibility::Hidden);
+	UE_LOG(LogTemp, Warning, TEXT("ServerListHidden..."));
+}
 
-	FString IPAddress = TextBoxIPAddress->GetText().ToString();
-	if (IPAddress.IsEmpty())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No_IPAddress"));
-		return;
-	}
+void ULogInWidget::OnJoinButtonClicked()
+{
+	HostButton->SetVisibility(ESlateVisibility::Hidden);
+	JoinButton->SetVisibility(ESlateVisibility::Hidden);
+	ServerListScrollBox->SetVisibility(ESlateVisibility::Visible);
+	RefreshButton->SetVisibility(ESlateVisibility::Visible);
+	BackButton->SetVisibility(ESlateVisibility::Visible);
+	
+	OnRefreshServerListClicked();
 
-	FString MapPath = FString::Printf(TEXT("/Game/Maps/test_map?listen"));
-
-	// クライアントは IP指定して接続する
-	FString ConnectAddress = FString::Printf(TEXT("%s:7777"), *IPAddress);
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*ConnectAddress), true);
-	UE_LOG(LogTemp, Warning, TEXT("ClientConnection:%s"), *IPAddress);
 }
 
 void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -141,7 +148,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 
 				FString Name = ServerData->GetStringField(TEXT("name"));
 				FString Address = ServerData->GetStringField(TEXT("address"));
-				int32 PlayerCount = ServerData->GetNumberField(TEXT("players"));
+				int32 PlayerCount = ServerData->GetNumberField(TEXT("playerCount"));
 
 				if (ServerListWidget == nullptr)
 				{
@@ -180,6 +187,8 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 		}
 	}
 }
+
+
 
 //void ULogInWidget::GetServerListFromMaster()
 //{

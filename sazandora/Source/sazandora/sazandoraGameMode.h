@@ -28,7 +28,13 @@ public:
 	UFUNCTION()
 	void ClearCheck(AMyPlayerState* p);
 
+	UFUNCTION()
+	void Start_Game();
+
 protected:
+	UPROPERTY()
+	bool start_flg = false;
+
 	virtual AActor* FindPlayerStart_Implementation(AController* player, const FString& IncomingName) override;
 
 private:

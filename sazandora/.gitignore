@@ -114,6 +114,11 @@ Desktop.ini
 .history/
 *.code-workspace
 
+# Node modules inside Engine or plugins
+**/node_modules/
+**/npm-cache/
+**/package-lock.json
+
 # Optional: ignore temporary plugins or marketplace cache
 ################################################################################
 Plugins/*/Intermediate/

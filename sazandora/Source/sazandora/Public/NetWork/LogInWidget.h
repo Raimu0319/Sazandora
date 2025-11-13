@@ -26,13 +26,10 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* ServerButton;
+	UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* ClientButton;
-
-	UPROPERTY(meta = (BindWidget))
-	UEditableTextBox* TextBoxIPAddress;
+	UButton* JoinButton;
 
 	// ScrollBoxにサーバー行を追加する用の参照（UMGでバインド）
 	UPROPERTY(meta = (BindWidget))
@@ -42,31 +39,34 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* RefreshButton;
 
+	UPROPERTY(meta = (BindWidget))
+	UButton* BackButton;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Server List")
 	TSubclassOf<class UServerListWidget> ServerListWidget;
 
-	
-
-	//void OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 private:
-
-	UFUNCTION()
-	void OnServerButtonClicked();
-
-	UFUNCTION()
-	void OnClientButtonClicked();
-
 	FString SelectedServerAddress;
 
 public:
 
 	ULogInWidget(const FObjectInitializer& ObjectInitializer);
 
+	UFUNCTION()
+	void OnHostButtonClicked();
+
+	UFUNCTION()
+	void OnJoinButtonClicked();
+
 	// サーバーリスト取得ボタンを押したとき
 	UFUNCTION(BlueprintCallable)
 	void OnRefreshServerListClicked();
 
+	UFUNCTION(BlueprintCallable)
+	void OnBackButtonClicked();
+
 	// HTTPレスポンスを受け取ったときに呼ばれる
 	void OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
 };

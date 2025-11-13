@@ -31,6 +31,8 @@ public:
 	UPROPERTY()
 	class UHUDWidget* wiget_p = nullptr;
 
+	UPROPERTY(Replicated)
+	bool is_host = false;
 
 	// 変数が変わった場合にOnRep_IsLoadedを実行する
 	UPROPERTY(Replicated)

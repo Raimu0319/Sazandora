@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "HUDWidget.h"
+#include "StartWaitWidget.h"
 #include "MyPlayerController.generated.h"
 
 /**
@@ -28,8 +29,14 @@ public:
 	UFUNCTION()
 	void Create_HUDWidget();
 
+	UFUNCTION()
+	void Create_WaitStartWidget();
+
 	UFUNCTION(Client, Reliable)
 	void Client_StartGame();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestStartGame();
 
 	// AControllerクラスまたはAPawnクラスでPlayerStateのポインタが
 	// クライアントにレプリケートされた時に呼び出されるコールバック関数
@@ -41,6 +48,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UHUDWidget> HUDWidget_class;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<class  UStartWaitWidget> StartWaitWidget_class;
+	
 	UHUDWidget* HUDWidget_pointer = nullptr;
+
+	UStartWaitWidget* wait_widget = nullptr;
 	
 };

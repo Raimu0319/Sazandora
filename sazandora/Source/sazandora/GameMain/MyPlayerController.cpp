@@ -9,6 +9,7 @@
 AMyPlayerController::AMyPlayerController()
 {
 	static ConstructorHelpers::FClassFinder<UHUDWidget> widgetclass(TEXT("/Game/ThirdPerson/widget/BP_HUDWidget2"));
+	static ConstructorHelpers::FClassFinder<UStartWaitWidget> start_wait_widgetclass(TEXT("/Game/ThirdPerson/widget/BP_StartWaitWidget"));
 
 	// widgetclssが見つかっているか
 	if (widgetclass.Succeeded())
@@ -20,6 +21,31 @@ AMyPlayerController::AMyPlayerController()
 	{
 		// 参照できない場合はログを出力
 		UE_LOG(LogTemp, Log, TEXT("HUDWidget is not find..."));
+	}
+
+	// widgetclssが見つかっているか
+	if (start_wait_widgetclass.Succeeded())
+	{
+		// 参照できた場合はクラス情報をwait_widgetに保存する
+		StartWaitWidget_class = start_wait_widgetclass.Class;
+	}
+	else
+	{
+		// 参照できない場合はログを出力
+		UE_LOG(LogTemp, Log, TEXT("start_wait_widgetclass is not find..."));
+	}
+
+
+
+}
+
+void AMyPlayerController::Server_RequestStartGame_Implementation()
+{
+	AsazandoraGameMode* GM = GetWorld()->GetAuthGameMode<AsazandoraGameMode>();
+
+	if (GM)
+	{
+		GM->Start_Game();
 	}
 }
 
@@ -114,6 +140,8 @@ void AMyPlayerController::NotifyLoaded()
 	// serverへ自分のロード完了を通知
 	player_state->Server_SetLoaded(true);
 
+	Create_WaitStartWidget();
+
 	// Notify関数が呼ばれたログ
 	UE_LOG(LogTemp, Log, TEXT("[%s] NotifyLoaded() called"), *GetName());
 }
@@ -142,7 +170,43 @@ void AMyPlayerController::Create_HUDWidget()
 
 			// PlayerStateの紐づけ
 			AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
-			HUDWidget_pointer->InitializeWidget(ps);		// Widgetの初期化
+			HUDWidget_pointer->InitializeWidget(ps);				// Widgetの初期化
+
+			FInputModeGameOnly InputMode;
+			SetInputMode(InputMode);
+			bShowMouseCursor = false;
+		}
+	}
+}
+
+void AMyPlayerController::Create_WaitStartWidget()
+{
+	// すでに生成済みならスキップ
+	if (wait_widget && wait_widget->IsValidLowLevel() && wait_widget->IsInViewport())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] HUDWidget already exists - skipped creation"), *GetName());
+		return;
+	}
+
+	// 所有権が自分で、StartWaitWidget_classがnullptrではなければ
+	if (IsLocalController() && StartWaitWidget_class)
+	{
+		// UHUDWidgetの生成
+		wait_widget = CreateWidget<UStartWaitWidget>(this, StartWaitWidget_class);
+
+		// 生成に失敗してなければ
+		if (wait_widget)
+		{
+			// 画面に表示
+			wait_widget->AddToViewport();
+
+			// PlayerController側で
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(wait_widget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
 		}
 	}
 }
@@ -155,6 +219,12 @@ void AMyPlayerController::Client_StartGame_Implementation()
 	if (!IsLocalController())
 	{
 		return;
+	}
+
+	if (wait_widget)
+	{
+		wait_widget->RemoveFromParent();
+		wait_widget = nullptr;
 	}
 
 	// playerstateの取得

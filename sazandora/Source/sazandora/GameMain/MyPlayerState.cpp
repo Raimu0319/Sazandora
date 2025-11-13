@@ -12,20 +12,12 @@ AMyPlayerState::AMyPlayerState()
 	bReplicates = true;
 }
 
-// ロードが完了したどうか
-void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
-{
-	is_loaded = load_flg;
-	OnRep_IsLoaded();
-}
-
-void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMyPlayerState, player_buy_list);
-	DOREPLIFETIME(AMyPlayerState,buylist_crear);
-	DOREPLIFETIME(AMyPlayerState,is_loaded);
-}
+//// ロードが完了したどうか
+//void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
+//{
+//	is_loaded = load_flg;
+//	OnRep_IsLoaded();
+//}
 
 void AMyPlayerState::OnRep_IsLoaded()
 {

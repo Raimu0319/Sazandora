@@ -21,19 +21,20 @@ void UMyGameInstance::Shutdown()
 
 void UMyGameInstance::StartAPIServer()
 {
-	FString NodePath = TEXT("C:/Program Files/nodejs/node.exe");
-	FString ServerScript = FPaths::ProjectDir() / TEXT("API/server.js");
+	FString NodePath = TEXT("C:/PG/Sazandora/sazandora/APIServer/APIServer.exe");
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT("APIServer/APIServer.exe"));
 
-	if (!FPaths::FileExists(ServerScript))
+	if (!FPaths::FileExists(ServerPath))
 	{
-		UE_LOG(LogTemp, Error, TEXT("APIServerScriptNO...: %s"), *ServerScript)
+		UE_LOG(LogTemp, Error, TEXT("APIServerScriptNO...: %s"), *ServerPath)
 		return;
 	}
 
-	FString CommandLine = FString::Printf(TEXT("\"%s\""), *ServerScript);
+	FString CommandLine = FString::Printf(TEXT("\"%s\""), *ServerPath);
 
 	NodeProcessHandle = FPlatformProcess::CreateProc(
-		*NodePath, *CommandLine,
+		*ServerPath, *CommandLine,
 		true, false, false,
 		nullptr, 0, nullptr, nullptr
 	);

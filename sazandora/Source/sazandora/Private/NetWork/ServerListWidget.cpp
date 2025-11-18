@@ -28,7 +28,14 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
     // ボタンのクリックイベントを登録
     if (ConnectButton)
     {
-        ConnectButton->OnClicked.AddDynamic(this, &UServerListWidget::OnConnectClicked);
+        if (PlayerCount < 4)
+        {
+            ConnectButton->OnClicked.AddDynamic(this, &UServerListWidget::OnConnectClicked);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("PlayerCountOver..."));
+        }
     }
 }
 

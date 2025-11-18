@@ -61,7 +61,12 @@ void ULogInWidget::OnHostButtonClicked()
 {
 	//サーバー起動
 	//サーバー起動用の実行ファイルがあるファイルパスを指定
-	FString ServerPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() + TEXT("Binaries/Win64/sazandoraServer.exe"));
+	//FString ServerPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() + TEXT("Binaries/Win64/sazandoraServer.exe"));
+	//FString ServerPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() + TEXT("Server/sazandoraServer.exe"));
+
+	//パッケージ化後のサーバーファイルパス
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT("Server/sazandoraServer.exe" /*"Binaries/Win64/sazandoraServer.exe"*/));
 	//サーバー起動時に渡すコマンドライン引数
 	FString ServerArgs = TEXT("/Game/PolygonCity/Maps/test_map?listen?game=Class'/Script/sazandora.SazandoraGameMode' -log");
 	//サーバー起動用ファイルを起動する

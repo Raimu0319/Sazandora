@@ -176,13 +176,17 @@ void AMyPlayerState::Buy_Item(int i, bool flg)
 	OnItemUpdated();
 }
 
+// クリアチェック
 bool AMyPlayerState::Is_Cleared() const
 {
+	// クリアリストの中身にfalseがあるかどうか
 	if (!buylist_crear.Contains(false))
 	{
+		// ないならtrue
 		return true;
 	}
 
+	// ある場合はfalse
 	return false;
 }
 

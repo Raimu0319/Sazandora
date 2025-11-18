@@ -106,6 +106,8 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 
 				// テキストの表示
 				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is buy"));
+
+				UE_LOG(LogTemp, Log, TEXT("player is buy "));
 			}
 		}
 	}
@@ -113,5 +115,7 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 	{
 		// テキストの表示
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is not buy"));
+
+		UE_LOG(LogTemp, Log, TEXT("player not buy "));
 	}
 }

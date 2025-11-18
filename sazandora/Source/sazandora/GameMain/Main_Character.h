@@ -46,7 +46,7 @@ public:
 	UFUNCTION(Server,Reliable)
 	void On_Talk_Eventkey();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Talk_NPC();
 
 	// 移動処理
@@ -96,6 +96,8 @@ private:
 	UPROPERTY()
 	bool Is_Talk;			//最大ダッシュ速度
 
+	ANPC_Character* CurrentInteractNPC = nullptr;
+
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera");
@@ -104,4 +106,13 @@ protected:
 	// カメラ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera");
 	class UCameraComponent* CameraComp;
+
+	UFUNCTION()
+	void CheckInteract();
+
+	UFUNCTION()
+	void Try_Talk();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestTalk(ANPC_Character* npc);
 };

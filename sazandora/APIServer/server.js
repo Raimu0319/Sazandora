@@ -60,6 +60,13 @@ let servers = [];
 
 app.post('/register', (req, res) => {
   const { name, address, playerCount, maxPlayers } = req.body;
+ 
+  if (playerCount === 0) 
+  {
+      servers = servers.filter(s => s.address !== address);
+      return res.json({ removed: true });
+  }
+ 
   const existing = servers.find(s => s.address === address);
   if (!existing) {
     servers.push({ name, address, playerCount, maxPlayers, time: Date.now() });
@@ -82,8 +89,15 @@ app.get('/servers', (req, res) => {
 app.put('/api/servers/update', (req, res) => {
     const { name, playerCount, maxPlayers } = req.body;
     const server = servers.find(s => s.name === name);
+    
+    if (playerCount === 0) 
+    {
+      servers = servers.filter(s => s.address !== address);
+      return res.json({ removed: true });
+    }
 
-    if (server) {
+    if (server) 
+    {
         server.playerCount = playerCount;
         server.maxPlayers = maxPlayers;
         server.time = Date.now();

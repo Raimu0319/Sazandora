@@ -107,6 +107,8 @@ void AMain_Character::Tick(float DeltaTime)
 	// ダッシュ処理
 	AMain_Character::Dash(DeltaTime);
 
+	AMain_Character::CheckInteract();
+
 }
 
 // Called to bind functionality to input
@@ -123,7 +125,7 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AMain_Character::On_Dash_Released);
 
 	// 会話キー
-	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &AMain_Character::On_Talk_Eventkey);
+	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &AMain_Character::Try_Talk);
 
 	// 移動入力のバインド
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMain_Character::MoveForward);
@@ -318,6 +320,11 @@ void AMain_Character::Dash(float DeltaTime)
 	}
 }
 
+bool AMain_Character::Server_Talk_NPC_Validate()
+{
+	return true;
+}
+
 // 会話キー
 void AMain_Character::On_Talk_Eventkey_Implementation()
 {
@@ -345,6 +352,70 @@ void AMain_Character::Server_Talk_NPC_Implementation()
 void AMain_Character::Set_Talk_Flg(bool talk_flg)
 {
 	this->Is_Talk = talk_flg;
+}
+
+// ライントレースで会話可能範囲にいるかどうかの判定
+void AMain_Character::CheckInteract()
+{
+	FHitResult hit;
+	FVector Start = CameraComp->GetComponentLocation();
+	FVector End = Start + CameraComp->GetForwardVector() * 550.0f;
+
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(hit, Start, End, ECC_Visibility, Params))
+	{
+		ANPC_Character* hit_npc = Cast<ANPC_Character>(hit.GetActor());
+
+		// npcが検出されたら
+		if (hit_npc)
+		{
+			// ポインタをセット
+			CurrentInteractNPC = hit_npc;
+			return;
+		}
+	}
+	
+	// なければnullにする
+	CurrentInteractNPC = nullptr;
+}
+
+// 会話開始リクエスト
+void AMain_Character::Try_Talk()
+{
+	if (CurrentInteractNPC)
+	{
+		UE_LOG(LogTemp, Log, TEXT("talk start npc "));
+		Server_RequestTalk(CurrentInteractNPC);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("npc is not find..."));
+	}
+}
+
+void AMain_Character::Server_RequestTalk_Implementation(ANPC_Character* npc)
+{
+	if (!npc)
+	{
+		UE_LOG(LogTemp, Log, TEXT("npc not find... "));
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("talk_event..."));
+
+	// サーバーで最終的な距離判定
+	float Dist = FVector::Dist(GetActorLocation(), npc->GetActorLocation());
+
+	if (Dist < 300.0f)
+	{
+		UE_LOG(LogTemp, Log, TEXT("talk_event start!!"));
+		npc->Talk_Event(this);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("talk_event end... "));
 }
 
 void AMain_Character::Set_NPC_Pointer(ANPC_Character* npc_charcter)

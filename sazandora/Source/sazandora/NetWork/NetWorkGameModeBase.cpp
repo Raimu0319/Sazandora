@@ -91,6 +91,8 @@ AActor* ANetWorkGameModeBase::ChoosePlayerStart_Implementation(AController* Play
 	// スポーン位置を順番に使用
 	int32 Index = NextSpawnIndex % PlayerStarts.Num();
 	NextSpawnIndex++;
+	UE_LOG(LogTemp, Warning, TEXT("Index:%d"), Index);
+	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex:%d"), NextSpawnIndex);
 
 	AActor* Start = PlayerStarts[Index];
 	UE_LOG(LogTemp, Warning, TEXT("Spawning Player %d at %s"), Index, *Start->GetName());

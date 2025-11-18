@@ -24,6 +24,7 @@ ANPC_Character::ANPC_Character()
 	// スフィアコリジョンのOverlapイベントをバインド
 	TalkRange->OnComponentBeginOverlap.AddDynamic(this, &ANPC_Character::OnPlayerEnterRange);
 	TalkRange->OnComponentEndOverlap.AddDynamic(this, &ANPC_Character::OnPlayerLeaveRange);
+	TalkRange->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	// 会話範囲にプレイヤーがいるかどうか
 	Is_Talk_Flg = false;

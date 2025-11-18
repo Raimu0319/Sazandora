@@ -59,6 +59,8 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
+	NextPlayerIndex++;
+
 	UpdateServerInfoOnAPI();
 	RegisterServerToAPI();
 }
@@ -194,9 +196,15 @@ void AsazandoraGameMode::Multicast_StartGame_Implementation()
 
 AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, const FString& IncomingName)
 {
+	// 参照したプレイヤーがサーバーではなければ
+	//if (player->HasAuthority())
+	//{
+	//	NextPlayerIndex++;			// 次のプレイヤーのためにインクリメント
+	//	UE_LOG(LogTemp, Warning, TEXT("NextPlayerIndex : %d") ,NextPlayerIndex);
+	//}
+
 	// 次にスポーンするプレイヤーのインデックスを格納
 	const int32 CurrentPlayerIndex = NextPlayerIndex;
-	NextPlayerIndex++;			// 次のプレイヤーのためにインクリメント
 
 	// 探したいPlayerStartのタグ作成	例）CurrentPlayerIndexが0ならStartPoint_0を作成、1ならStartPoint_1になる
 	const FName TargetTag = FName(*FString::Printf(TEXT("StartPoint_%d"), CurrentPlayerIndex));

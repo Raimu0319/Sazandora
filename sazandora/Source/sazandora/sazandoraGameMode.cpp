@@ -247,7 +247,8 @@ void AsazandoraGameMode::Logout(AController* Exiting)
 
 void AsazandoraGameMode::RegisterServerToAPI()
 {
-	FString ServerName = "SazandoraServer";
+	int32 Port = GetWorld()->URL.Port;
+	FString ServerName = FString::Printf(TEXT("Server:%d"), Port);
 	FString ServerAddress = Get_IPAddress(); // 実際は外部IPを取得する方法もあり
 	int32 PlayerCount = NextPlayerIndex;
 	int32 MaxPlayers = 4;

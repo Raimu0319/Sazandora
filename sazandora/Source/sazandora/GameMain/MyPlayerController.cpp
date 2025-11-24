@@ -88,6 +88,7 @@ void AMyPlayerController::OnRep_PlayerState()
 		FTimerHandle DelayHandle;
 		GetWorldTimerManager().SetTimer(DelayHandle, [this]()
 		{
+			// キャラやUIのロードが完了したタイミングで通知
 			NotifyLoaded();
 		}, 0.2f, false);
 	}
@@ -97,9 +98,35 @@ void AMyPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// キャラやUIのロードが完了したタイミングで通知
-	NotifyLoaded();
+}
 
+void AMyPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	// サーバーだけがPlayerStateを初期化する
+	if (HasAuthority())
+	{
+		AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+		if (PS)
+		{
+			UE_LOG(LogTemp, Log, TEXT("[OnPossess] Init PlayerState %s"), *PS->GetName());
+			PS->My_State_Initialize();
+		}
+		else
+		{
+			// PlayerStateがまだ来ていないことがあるので再試行
+			FTimerHandle RetryHandle;
+			GetWorld()->GetTimerManager().SetTimer(RetryHandle, [this]()
+				{
+					if (AMyPlayerState* LatePS = GetPlayerState<AMyPlayerState>())
+					{
+						UE_LOG(LogTemp, Log, TEXT("[OnPossess Retry] Init PlayerState %s"), *LatePS->GetName());
+						LatePS->My_State_Initialize();
+					}
+				}, 0.1f, false);
+		}
+	}
 }
 
 void AMyPlayerController::NotifyLoaded()
@@ -231,8 +258,6 @@ void AMyPlayerController::Client_StartGame_Implementation()
 			// playerstateがnullptrかどうかチェック
 			if (AMyPlayerState* player_state = GetPlayerState<AMyPlayerState>())
 			{
-				player_state->My_State_Initialize();
-
 				Create_HUDWidget();
 
 				UE_LOG(LogTemp, Warning, TEXT("[%s] NotifyLoaded skipped: PlayerState not ready"), *GetName());
@@ -252,4 +277,23 @@ void AMyPlayerController::Client_StartGame_Implementation()
 			}
 
 		}, 0.3f, false);
+}
+
+// ウィジェットの更新
+void AMyPlayerController::Refresh_UI()
+{
+	// ローカルコントローラーのUI更新だけ行う
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	if (HUDWidget_pointer)
+	{
+		HUDWidget_pointer->RefreshUI();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client_UpdateBuyList: HUDWidget_pointer is null"));
+	}
 }

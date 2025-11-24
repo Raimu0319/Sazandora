@@ -20,8 +20,8 @@ public:
 	UFUNCTION()
 	void CheckAllPlayersLoaded();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_StartGame();
+	//UFUNCTION(NetMulticast, Reliable)
+	//void Multicast_StartGame();
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 

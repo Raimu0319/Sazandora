@@ -60,6 +60,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_JumpPressed();
 
+	int team_number = 0;
+
 private:
 
 	// 例）UPROPERTY(EditAnywhere(エディタ上で編集可能)、Category = 項目名)

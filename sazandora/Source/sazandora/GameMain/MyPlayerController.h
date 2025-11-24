@@ -38,6 +38,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_RequestStartGame();
 
+	void Refresh_UI();
+
 	// AControllerクラスまたはAPawnクラスでPlayerStateのポインタが
 	// クライアントにレプリケートされた時に呼び出されるコールバック関数
 	virtual void OnRep_PlayerState() override;
@@ -55,4 +57,5 @@ protected:
 
 	UStartWaitWidget* wait_widget = nullptr;
 	
+	virtual void OnPossess(APawn* InPawn) override;
 };

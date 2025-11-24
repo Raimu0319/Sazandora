@@ -9,9 +9,6 @@ void UHUDWidget::InitializeWidget(AMyPlayerState* PlayerState)
 
 	if (player_state)
 	{
-		// playerstateにポインタを渡す
-		player_state->wiget_p = this;
-
 		player_state->OnItemUpdated();
 	}
 }

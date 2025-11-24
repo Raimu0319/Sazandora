@@ -14,6 +14,7 @@ void UStartWaitWidget::Widget_Initialize()
 	
 }
 
+//スタートボタンが押された際の処理
 void UStartWaitWidget::OnStartButtonClicked()
 {
 	AMyPlayerController* pc = Cast<AMyPlayerController>(GetOwningPlayer());
@@ -56,6 +57,7 @@ void UStartWaitWidget::NativeConstruct()
 		return;
 	}
 
+	// ホストならゲーム開始ボタンの表示
 	if (ps->is_host)
 	{
 		start_button->SetVisibility(ESlateVisibility::Visible);

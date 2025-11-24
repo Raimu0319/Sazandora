@@ -83,15 +83,34 @@ void AJUICE_NPC::Talk_Event(AMain_Character* player)
 	// プレイヤーの買い物リストを保存
 	//TArray<E_ITEM_TYPE> p_buylist = player->Get_ItemList();
 
+	UE_LOG(LogTemp, Warning, TEXT("[NPC Talk_Event] Authority: %d | NetMode: %d"), HasAuthority(), (int)GetNetMode());
+
 	// サーバーのみ実行
 	if (!HasAuthority())
 	{
 		return;
 	}
 
+	if (!player)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("player is nullptr"));
+		return;
+	}
+
 	AMyPlayerState* player_state = player->GetPlayerState<AMyPlayerState>();
 
+	UE_LOG(LogTemp, Warning, TEXT("UniqueID = %s"),
+		*player_state->GetUniqueId().ToString());
+
+
 	TArray<E_ITEM_TYPE> p_buylist = player_state->player_buy_list;
+
+	//// 数値をFStringに変換
+	for (int32 i = 0; i < 3; i++)
+	{
+		/*FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), p_buylist[i]);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);*/
+	}
 
 	// 自分が販売しているアイテムがあるかどうか
 	if (p_buylist.Contains(e_mytype))

@@ -22,14 +22,17 @@ public:
 	// コンストラクタ
 	AMyPlayerState();
 	
-	UPROPERTY(BlueprintReadOnly,Replicated)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BuyList)
 	TArray<E_ITEM_TYPE> player_buy_list;
 
-	UPROPERTY(BlueprintReadOnly,Replicated)
+	// サーバーで変数の値を変更し、その変更をネットワーク経由でクライアントにレプリケートする
+	// クライアントは、値を受け取り、自身のローカル変数に格納する
+	// その直後に、指定された通知関数(RepNotify関数)を空ライアン途上腕自動的に呼び出す
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BuyList)
 	TArray<bool> buylist_crear;			//買い物達成状況
 
-	UPROPERTY()
-	class UHUDWidget* wiget_p = nullptr;
+	//UPROPERTY()
+	//class UHUDWidget* wiget_p = nullptr;
 
 	UPROPERTY(Replicated)
 	bool is_host = false;
@@ -45,9 +48,15 @@ public:
 	UFUNCTION()
 	void My_State_Initialize();
 
+	//UFUNCTION(Server, Reliable)
+	//void Server_Random_Item();
+
 	void Random_Item();
 
 	void Buy_Item(int i, bool flg);
+
+	UFUNCTION()
+	void OnRep_BuyList();
 
 	bool Is_Cleared() const;
 

@@ -4,12 +4,23 @@
 #include "MyPlayerState.h"
 #include "HUDWidget.h"
 #include "sazandora/sazandoraGameMode.h"
+#include "MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 // 初期化
 AMyPlayerState::AMyPlayerState()
 {
 	bReplicates = true;
+}
+
+// レプリケーションの設定
+void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMyPlayerState, player_buy_list);
+	DOREPLIFETIME(AMyPlayerState, buylist_crear);
+	DOREPLIFETIME(AMyPlayerState, is_loaded);
+	DOREPLIFETIME(AMyPlayerState, is_host);
 }
 
 //// ロードが完了したどうか
@@ -30,34 +41,37 @@ void AMyPlayerState::BeginPlay()
 	Super::BeginPlay();
 }
 
-// レプリケーションの設定
-void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMyPlayerState, player_buy_list);
-	DOREPLIFETIME(AMyPlayerState, buylist_crear);
-	DOREPLIFETIME(AMyPlayerState, is_loaded);
-	DOREPLIFETIME(AMyPlayerState, is_host);
-}
-
 // Playerの初期化
 void AMyPlayerState::My_State_Initialize()
 {
-	buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
-
-	// 要素の初期化
-	buylist_crear = { false, false, false };
-
-	// アイテムリストの作成
-	Random_Item();
-
-	//// 数値をFStringに変換
-	for (int32 i = 0; i < 3; i++)
+	/*if (!HasAuthority())
 	{
-		FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), player_buy_list[i]);
-		UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+		return;
+	}*/
+
+	if (HasAuthority())
+	{
+		buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
+
+		// 要素の初期化
+		buylist_crear = { false, false, false };
+
+		// アイテムリストの作成
+		Random_Item();
+
+		//// 数値をFStringに変換
+		for (int32 i = 0; i < 3; i++)
+		{
+			FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), player_buy_list[i]);
+			UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+		}
 	}
 }
+
+//void AMyPlayerState::Server_Random_Item_Implementation()
+//{
+//	Random_Item();
+//}
 
 // ロードが完了したどうか
 void AMyPlayerState::Server_SetLoaded_Implementation(bool load_flg)
@@ -117,9 +131,6 @@ void AMyPlayerState::Client_OnLoaded_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("ロード中"));
 
 	UE_LOG(LogTemp, Log, TEXT("[PS OnRep_IsLoaded] %s -> %d | NetMode=%d"), *GetName(), is_loaded, (int)GetNetMode());
-
-	Random_Item();
-
 }
 
 // ランダムで購入するアイテムを渡す処理
@@ -173,6 +184,17 @@ void AMyPlayerState::Random_Item()
 void AMyPlayerState::Buy_Item(int i, bool flg)
 {
 	buylist_crear[i] = flg;
+	//OnItemUpdated();
+}
+
+void AMyPlayerState::OnRep_BuyList()
+{
+	if (!IsNetMode(NM_Client))
+	{
+		return; // サーバー側では UI 更新しない
+	}
+
+	// クライアント側だけで走るUI更新処理
 	OnItemUpdated();
 }
 
@@ -193,5 +215,16 @@ bool AMyPlayerState::Is_Cleared() const
 // ウィジェットの更新
 void AMyPlayerState::OnItemUpdated()
 {
-	wiget_p->RefreshUI();
+	// クライアントのみUI更新　ホストにはwidgetが存在しないためクライアントのみの実行
+	if (GetNetMode() != NM_Client)
+	{
+		return;
+	}
+
+	AMyPlayerController* pc = Cast<AMyPlayerController>(GetOwner());
+
+	if (pc)
+	{
+		pc->Refresh_UI();
+	}
 }

@@ -14,15 +14,16 @@ void UMyGameInstance::Init()
 
 void UMyGameInstance::Shutdown()
 {
+	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Shutdown"));
 	StopAPIServer();
 	Super::Shutdown();
-	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Shutdown"));
 }
 
 void UMyGameInstance::StartAPIServer()
 {
 	FString NodePath = TEXT("C:/PG/Sazandora/sazandora/APIServer/APIServer.exe");
 	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
+	//FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	FString ServerPath = FPaths::Combine(BaseDir, TEXT("APIServer/APIServer.exe"));
 
 	if (!FPaths::FileExists(ServerPath))
@@ -57,5 +58,9 @@ void UMyGameInstance::StopAPIServer()
 		FPlatformProcess::TerminateProc(NodeProcessHandle, true);
 		FPlatformProcess::CloseProc(NodeProcessHandle);
 		NodeProcessHandle.Reset();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Node.js:APIServerNOCloss..."));
 	}
 }

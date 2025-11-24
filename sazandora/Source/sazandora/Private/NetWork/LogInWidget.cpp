@@ -32,56 +32,38 @@ void ULogInWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (HostButton)
+	if (HostButton)	//ホストボタンが押されたら
 	{
 		HostButton->OnClicked.AddDynamic(this, &ULogInWidget::OnHostButtonClicked);
 	}
 
-	if (JoinButton)
+	if (JoinButton)	//ジョインボタンが押されたら
 	{
 		JoinButton->OnClicked.AddDynamic(this, &ULogInWidget::OnJoinButtonClicked);
 	}
 
-	if (RefreshButton)
+	if (RefreshButton)	//リフレッシュボタンが押されたら
 	{
 		RefreshButton->OnClicked.AddDynamic(this, &ULogInWidget::OnRefreshServerListClicked);
 	}
 
-	if (BackButton)
+	if (BackButton)	//バックボタンが押されたら
 	{
 		BackButton->OnClicked.AddDynamic(this, &ULogInWidget::OnBackButtonClicked);
 	}
 
-	// 起動時にも1回取得
+	// 起動時にAPIサーバーからサーバーリストを取得する
 	OnRefreshServerListClicked();
 }
 
 
 void ULogInWidget::OnHostButtonClicked()
 {
-	//サーバー起動
-	//サーバー起動用の実行ファイルがあるファイルパスを指定
-	//FString ServerPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() + TEXT("Binaries/Win64/sazandoraServer.exe"));
-	//FString ServerPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() + TEXT("Server/sazandoraServer.exe"));
+	//ホストサーバー起動フラグ
+	HostServerStart = true;
 
-	//パッケージ化後のサーバーファイルパス
-	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
-	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
-	//サーバー起動時に渡すコマンドライン引数
-	FString ServerArgs = TEXT("/Game/PolygonCity/Maps/test_map?listen?game=Class'/Script/sazandora.SazandoraGameMode' -log");
-	//サーバー起動用ファイルを起動する
-	FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
-
-	//指定した秒数経過後に先ほど起動したサーバーに接続する
-	FTimerHandle TimerHandle;
-
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-	{
-			FString IPAddress = TEXT("127.0.0.1");
-			UGameplayStatics::OpenLevel(GetWorld(), FName(*FString::Printf(TEXT("%s:7777"), *IPAddress)));
-	}, 2.0f, false);
-
-	UE_LOG(LogTemp, Warning, TEXT("ListenServer_Start"));	//TEXT()に渡す時は英語で渡す（クラッシュ防止）
+	//今現在、稼働しているサーバーリスト更新＆ホストサーバー起動フラグがtrueならサーバーを起動する
+	OnRefreshServerListClicked();
 }
 
 void ULogInWidget::OnRefreshServerListClicked()
@@ -98,6 +80,7 @@ void ULogInWidget::OnRefreshServerListClicked()
 
 void ULogInWidget::OnBackButtonClicked()
 {
+	//画面表示(Visible,Hidden)を切り替える
 	HostButton->SetVisibility(ESlateVisibility::Visible);
 	JoinButton->SetVisibility(ESlateVisibility::Visible);
 	ServerListScrollBox->SetVisibility(ESlateVisibility::Hidden);
@@ -108,15 +91,51 @@ void ULogInWidget::OnBackButtonClicked()
 
 void ULogInWidget::OnJoinButtonClicked()
 {
+	//画面表示(Visible,Hidden)を切り替える
 	HostButton->SetVisibility(ESlateVisibility::Hidden);
 	JoinButton->SetVisibility(ESlateVisibility::Hidden);
 	ServerListScrollBox->SetVisibility(ESlateVisibility::Visible);
 	RefreshButton->SetVisibility(ESlateVisibility::Visible);
 	BackButton->SetVisibility(ESlateVisibility::Visible);
 	
+	//APIサーバーからサーバーリストの情報を受け取る
 	OnRefreshServerListClicked();
 
 }
+
+void ULogInWidget::Server_Start()
+{
+	int32  Port = CheckforfreePorts();	//使用できるポート番号検索
+
+	if (Port < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No available port found!"));
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Using Port: %d"), Port);
+
+	//パッケージ化後のサーバーファイルパス
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
+	//サーバー起動時に渡すコマンドライン引数
+	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port);
+	//サーバー起動用ファイルを起動する
+	FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
+
+	//指定した秒数経過後に先ほど起動したサーバーに接続する
+	FTimerHandle TimerHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Port]()
+		{
+			FString IPAddress = TEXT("127.0.0.1");
+			UGameplayStatics::OpenLevel(GetWorld(), FName(*FString::Printf(TEXT("%s:%d"), *IPAddress, Port)));
+			ReleaseReservedPorts();
+		}, 2.0f, false);
+
+	UE_LOG(LogTemp, Warning, TEXT("ListenServer_Start"));	//TEXT()に渡す時は英語で渡す（クラッシュ防止）
+
+}
+
 
 void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
@@ -147,6 +166,8 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 				UE_LOG(LogTemp, Warning, TEXT("ServerListScrollBox_NULL"));
 			}
 
+			OccupiedPorts.Empty();	//配列の中身を初期化
+
 			for (auto ServerValue : *ServerArray)
 			{
 				TSharedPtr<FJsonObject> ServerData = ServerValue->AsObject();
@@ -160,6 +181,19 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 					UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_NULL"));
 				}
 
+				//受取ったIPアドレスからポート番号を抽出する
+				FString IPPart, PortPart;
+				if (Address.Split(TEXT(":"), &IPPart, &PortPart))
+				{
+					int32 Port = FCString::Atoi(*PortPart);	//文字列を整数に変換する
+					OccupiedPorts.Add(Port);				//使用しているポート番号を格納する
+					UE_LOG(LogTemp, Warning, TEXT("PushPort:%d"), Port);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("NOPushPort"));
+				}
+				
 				// ウィジェット生成
 				if (ServerListWidget && ServerListScrollBox)
 				{
@@ -171,87 +205,78 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 						Row->Setup(Name, Address, PlayerCount);
 						ServerListScrollBox->AddChild(Row);
 					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_NULL"));
-					}
 				}
-				else
-				{
-					/*if (ServerListWidget == nullptr)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_NULL"));
-					}*/
-					if (ServerListScrollBox == nullptr)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("ServerListScrollBox_NULL"));
-					}
-			
-				}
+			}
+
+			//ホストサーバー起動フラグがtrueならサーバーを起動する
+			if (HostServerStart)
+			{
+				HostServerStart = false;
+				Server_Start();		//サーバー起動用関数
 			}
 		}
 	}
 }
 
+int32 ULogInWidget::CheckforfreePorts()
+{
+	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+
+	//使用されていないポート番号を調べる
+    for (int32 Port = 7777; Port <= 7799; Port++)
+    {
+		// 既に使用済みならスキップ
+		if (OccupiedPorts.Contains(Port))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ContinuePort:%d"), Port);
+			continue;
+		}
+
+        TSharedRef<FInternetAddr> Addr = SocketSubsystem->CreateInternetAddr();
+        bool bIsValid = false;
+        Addr->SetIp(TEXT("127.0.0.1"), bIsValid);
+        Addr->SetPort(Port);
+
+        // UDP ソケット作成（UE Dedicated Serverと競合する）
+        FSocket* Socket = SocketSubsystem->CreateSocket(NAME_DGram, TEXT("PortCheckSocket"), false);
+        if (!Socket)
+            continue;
+
+        Socket->SetReuseAddr(true);
+        Socket->SetNonBlocking(true);
 
 
-//void ULogInWidget::GetServerListFromMaster()
-//{
-//	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
-//	Request->SetURL("http://127.0.0.1:3000/list");
-//	Request->SetVerb("GET");
-//	Request->SetHeader("Content-Type", "application/json");
-//
-//	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bWasSuccessful)
-//		{
-//			if (bWasSuccessful)
-//			{
-//				FString ResponseString = Response->GetContentAsString();
-//				UE_LOG(LogTemp, Warning, TEXT("サーバー一覧: %s"), *ResponseString);
-//			}
-//			else
-//			{
-//				UE_LOG(LogTemp, Warning, TEXT("サーバー一覧取得失敗"));
-//			}
-//		});
-//
-//	Request->ProcessRequest();
-//}
-//
-//void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-//{
-//	if (!bWasSuccessful) return;
-//
-//	FString ResponseString = Response->GetContentAsString();
-//
-//	TArray<TSharedPtr<FJsonValue>> JsonArray;
-//	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
-//
-//	if (FJsonSerializer::Deserialize(Reader, JsonArray))
-//	{
-//		// 既存のリストをクリア
-//		ServerListScrollBox->ClearChildren();
-//
-//		for (auto& JsonValue : JsonArray)
-//		{
-//			TSharedPtr<FJsonObject> ServerObj = JsonValue->AsObject();
-//			if (!ServerObj.IsValid()) continue;
-//
-//			FString Name = ServerObj->GetStringField("name");
-//			IP = ServerObj->GetStringField("ip");
-//			Port = ServerObj->GetIntegerField("port");
-//			Map = ServerObj->GetStringField("map");
-//
-//			// Widgetを生成してScrollBoxに追加
-//			ULogInWidget* Row = CreateWidget<ULogInWidget>(this, ServerRowWidgetClass);
-//			Row->Setup(Name, IP, Port, Map);
-//			ServerListScrollBox->AddChild(Row);
-//		}
-//	}
-//
-//}
-//
-//void ULogInWidget::Setup(const FString& InName, const FString& InIP, int32 InPort, const FString& InMap)
-//{
-//
-//}
+        if (Socket->Bind(*Addr))
+        {
+            // ソケットを解放せず、保持する
+			OccupiedPortSockets.Add(Socket);
+			OccupiedPorts.Add(Port);         // ポート番号も保持
+			UE_LOG(LogTemp, Warning, TEXT("returnPort:%d"),Port);
+            return Port;
+        }
+
+        // bind NO = ソケットを破棄
+        Socket->Close();
+        SocketSubsystem->DestroySocket(Socket);
+    }
+
+    return -1;
+
+}
+
+void ULogInWidget::ReleaseReservedPorts()
+{
+	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+
+	for (FSocket* Socket : OccupiedPortSockets)
+	{
+		if (Socket)
+		{
+			Socket->Close();
+			SocketSubsystem->DestroySocket(Socket);
+		}
+	}
+
+	OccupiedPortSockets.Empty();
+	//OccupiedPorts.Empty(); // ポート番号もクリア
+}

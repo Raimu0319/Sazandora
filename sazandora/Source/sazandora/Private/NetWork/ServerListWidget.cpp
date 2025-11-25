@@ -4,7 +4,7 @@
 #include "NetWork/ServerListWidget.h"
 #include "Kismet/GameplayStatics.h"
 
-void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int PlayerCount)
+void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int PlayerCount, bool gameplay)
 {
     // 受け取った情報を自分の内部に保存
     ServerIP = IP;
@@ -28,13 +28,13 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
     // ボタンのクリックイベントを登録
     if (ConnectButton)
     {
-        if (PlayerCount < 4)
+        if (PlayerCount < 4 && !gameplay) //プレイヤーの数が4以上ならそのサーバーに入れないようにする
         {
             ConnectButton->OnClicked.AddDynamic(this, &UServerListWidget::OnConnectClicked);
         }
-        else
+        else if (gameplay)
         {
-            UE_LOG(LogTemp, Warning, TEXT("PlayerCountOver..."));
+            UE_LOG(LogTemp, Warning, TEXT("GamePlay..."));
         }
     }
 }

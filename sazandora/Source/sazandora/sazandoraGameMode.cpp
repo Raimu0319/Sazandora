@@ -262,6 +262,7 @@ void AsazandoraGameMode::RegisterServerToAPI()
 	JsonObject->SetStringField(TEXT("address"), ServerAddress);
 	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
 	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+	JsonObject->SetBoolField(TEXT("gameplay"), gameplay);
 
 	FString OutputString;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
@@ -317,15 +318,17 @@ void AsazandoraGameMode::UpdateServerInfoOnAPI()
 {
 	// APIエンドポイント
 	FString Url = TEXT("http://127.0.0.1:3000/api/servers/update");
-
+	int32 Port = GetWorld()->URL.Port;
+	FString ServerName = FString::Printf(TEXT("Server:%d"), Port);
 	int32 PlayerCount = NextPlayerIndex;
 	int32 MaxPlayers = 4;
 
 	// JSONオブジェクト作成
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField(TEXT("name"), TEXT("SazandoraServer"));
+	JsonObject->SetStringField(TEXT("name"), ServerName);
 	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
 	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+	JsonObject->SetBoolField(TEXT("gameplay"), gameplay);
 
 	FString OutputString;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
@@ -351,4 +354,9 @@ void AsazandoraGameMode::UpdateServerInfoOnAPI()
 		});
 
 	Request->ProcessRequest();
+}
+
+void AsazandoraGameMode::Set_Gameplay(bool flag)
+{
+	gameplay = flag;
 }

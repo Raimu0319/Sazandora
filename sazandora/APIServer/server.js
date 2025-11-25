@@ -59,7 +59,7 @@ app.use(express.json());
 let servers = [];
 
 app.post('/register', (req, res) => {
-  const { name, address, playerCount, maxPlayers } = req.body;
+  const { name, address, playerCount, maxPlayers, gameplay} = req.body;
  
   if (playerCount === 0) 
   {
@@ -69,11 +69,12 @@ app.post('/register', (req, res) => {
  
   const existing = servers.find(s => s.address === address);
   if (!existing) {
-    servers.push({ name, address, playerCount, maxPlayers, time: Date.now() });
+    servers.push({ name, address, playerCount, maxPlayers, gameplay, time: Date.now() });
   } else {
     existing.name = name;
     existing.playerCount = playerCount;
     existing.maxPlayers = maxPlayers;
+    existing.gameplay = gameplay;
     existing.time = Date.now();
   }
   res.send({ success: true });
@@ -87,7 +88,7 @@ app.get('/servers', (req, res) => {
 });
 
 app.put('/api/servers/update', (req, res) => {
-    const { name, playerCount, maxPlayers } = req.body;
+    const { name, playerCount, maxPlayers, gameplay} = req.body;
     const server = servers.find(s => s.name === name);
     
     if (playerCount === 0) 
@@ -100,6 +101,7 @@ app.put('/api/servers/update', (req, res) => {
     {
         server.playerCount = playerCount;
         server.maxPlayers = maxPlayers;
+        server.gameplay = gameplay;
         server.time = Date.now();
         res.json({ message: 'Updated', server });
     } else {

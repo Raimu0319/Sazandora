@@ -6,7 +6,7 @@
 
 ALogin_HUD::ALogin_HUD()
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBP(TEXT("/Game/Login_UI/Login_Widget.Login_Widget_C"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBP(TEXT("/Game/UI/Login_UI/Login_Widget.Login_Widget_C"));
 	if (WidgetBP.Succeeded())
 	{
 		LoginWidgetClass = WidgetBP.Class;
@@ -19,7 +19,6 @@ void ALogin_HUD::BeginPlay()
 
 	//自分の画面（ローカル）にだけウィジェットを表示
 	APlayerController* PlayerController = GetOwningPlayerController();
-	//LoginWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Login_UI/Login_Widget.Login_Widget_C"));
 
 	if (PlayerController && PlayerController->IsLocalController())
 	{

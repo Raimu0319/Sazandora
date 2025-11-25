@@ -31,7 +31,11 @@ public:
 
 	UFUNCTION()
 	void Start_Game();
+	
+	UFUNCTION()
+	void Set_Gameplay(bool flag);
 
+	void UpdateServerInfoOnAPI();
 protected:
 	UPROPERTY()
 	bool start_flg = false;
@@ -41,8 +45,8 @@ protected:
 
 private:
 	int32 NextPlayerIndex = 0;
+	bool gameplay  = false;
 
 	void RegisterServerToAPI();
-	void UpdateServerInfoOnAPI();
 	FString Get_IPAddress();
 };

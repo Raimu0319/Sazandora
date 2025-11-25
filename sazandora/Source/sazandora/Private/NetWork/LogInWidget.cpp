@@ -14,7 +14,7 @@ ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListWidgetBP(
-		TEXT("/Game/Login_UI/ServerList_Widget.ServerList_Widget_C")
+		TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C")
 	);
 
 	if (ServerListWidgetBP.Succeeded())
@@ -116,7 +116,7 @@ void ULogInWidget::Server_Start()
 
 	//パッケージ化後のサーバーファイルパス
 	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
-	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT("Server/sazandoraServer.exe"/*"Binaries/Win64/sazandoraServer.exe"*/));
 	//サーバー起動時に渡すコマンドライン引数
 	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port);
 	//サーバー起動用ファイルを起動する
@@ -175,7 +175,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 				FString Name = ServerData->GetStringField(TEXT("name"));
 				FString Address = ServerData->GetStringField(TEXT("address"));
 				int32 PlayerCount = ServerData->GetNumberField(TEXT("playerCount"));
-
+				bool gameplay = ServerData->GetBoolField(TEXT("gameplay"));
 				if (ServerListWidget == nullptr)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_NULL"));
@@ -202,7 +202,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 					{
 						UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_OK"));
 						UE_LOG(LogTemp, Warning, TEXT("PlayerCount:%d"), PlayerCount);
-						Row->Setup(Name, Address, PlayerCount);
+						Row->Setup(Name, Address, PlayerCount, gameplay);
 						ServerListScrollBox->AddChild(Row);
 					}
 				}

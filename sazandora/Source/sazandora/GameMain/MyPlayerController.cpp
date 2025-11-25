@@ -44,6 +44,8 @@ void AMyPlayerController::Server_RequestStartGame_Implementation()
 	if (GM)
 	{
 		GM->Start_Game();
+		GM->Set_Gameplay(true);		//GameModeのゲームスタートフラグをtrueにする
+		GM->UpdateServerInfoOnAPI();//APIサーバーの情報を更新
 	}
 }
 

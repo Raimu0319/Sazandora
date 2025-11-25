@@ -19,7 +19,7 @@ class SAZANDORA_API UServerListWidget : public UUserWidget
 	
 public:
     UFUNCTION(BlueprintCallable)
-    void Setup(const FString& ServerName, const FString& IP, int PlayerCount);
+    void Setup(const FString& ServerName, const FString& IP, int PlayerCount, bool gameplay);
 
 protected:
     // Blueprintã‚ÌTextBlock‚ÆButton‚ğC++‚É•R•t‚¯‚é

@@ -18,7 +18,7 @@ void UStartWaitWidget::Widget_Initialize()
 void UStartWaitWidget::OnStartButtonClicked()
 {
 	AMyPlayerController* pc = Cast<AMyPlayerController>(GetOwningPlayer());
-		
+
 	if(pc)
 	{
 		UE_LOG(LogTemp, Log, TEXT("push button"));

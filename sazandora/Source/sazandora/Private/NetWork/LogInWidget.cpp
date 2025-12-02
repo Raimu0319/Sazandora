@@ -13,30 +13,34 @@
 ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListWidgetBP(
-		TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C"));
+	if (!IsRunningDedicatedServer())
+	{
 
-	static ConstructorHelpers::FClassFinder<UUnableConnectWidget> UnableConnectWidgetBP(
-		TEXT("/Game/UI/Login_UI/UnableConnect_Widget.UnableConnect_Widget_C"));
+		static ConstructorHelpers::FClassFinder<UUserWidget> ServerListWidgetBP(
+			TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C"));
 
-	if (ServerListWidgetBP.Succeeded())
-	{
-		ServerListWidget = ServerListWidgetBP.Class;
-		UE_LOG(LogTemp, Warning, TEXT("ServerRowWidgetClass loaded successfully!"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load ServerRowWidgetClass."));
-	}
+		static ConstructorHelpers::FClassFinder<UUnableConnectWidget> UnableConnectWidgetBP(
+			TEXT("/Game/UI/Login_UI/UnableConnect_Widget.UnableConnect_Widget_C"));
 
-	if (UnableConnectWidgetBP.Succeeded())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UnableConnectWidgetClass loaded successfully!"));
-		UnableConnectWidget = UnableConnectWidgetBP.Class;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load UnableConnectWidgetClass"));
+		if (ServerListWidgetBP.Succeeded())
+		{
+			ServerListWidget = ServerListWidgetBP.Class;
+			UE_LOG(LogTemp, Warning, TEXT("ServerRowWidgetClass loaded successfully!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load ServerRowWidgetClass."));
+		}
+
+		if (UnableConnectWidgetBP.Succeeded())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UnableConnectWidgetClass loaded successfully!"));
+			UnableConnectWidget = UnableConnectWidgetBP.Class;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load UnableConnectWidgetClass"));
+		}
 	}
 }
 

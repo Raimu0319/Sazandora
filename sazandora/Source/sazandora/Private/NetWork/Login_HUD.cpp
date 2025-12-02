@@ -6,10 +6,13 @@
 
 ALogin_HUD::ALogin_HUD()
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBP(TEXT("/Game/UI/Login_UI/Login_Widget.Login_Widget_C"));
-	if (WidgetBP.Succeeded())
+	if (!IsRunningDedicatedServer())
 	{
-		LoginWidgetClass = WidgetBP.Class;
+		static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBP(TEXT("/Game/UI/Login_UI/Login_Widget.Login_Widget_C"));
+		if (WidgetBP.Succeeded())
+		{
+			LoginWidgetClass = WidgetBP.Class;
+		}
 	}
 }
 

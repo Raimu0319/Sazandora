@@ -26,6 +26,7 @@ app.post('/register', (req, res) => {
   res.send({ success: true });
 });
 
+//サーバー情報取得
 app.get('/servers', (req, res) => {
   // optional: prune old entries
   const now = Date.now();
@@ -33,6 +34,7 @@ app.get('/servers', (req, res) => {
   res.json({ servers });
 });
 
+//サーバー情報更新
 app.put('/api/servers/update', (req, res) => {
     const { name, playerCount, maxPlayers, gameplay} = req.body;
     const server = servers.find(s => s.name === name);
@@ -54,7 +56,38 @@ app.put('/api/servers/update', (req, res) => {
         res.status(404).json({ message: 'Server not found' });
     }
   });
+
+  //サーバーから生存通知を受け取る
+  app.post('/heartbeat', (req, res) => {
+  const { address } = req.body;
+
+  const server = servers.find(s => s.address === address);
+
+  if (!server) {
+    return res.status(404).json({ error: "Server not registered" });
+  }
+
+  // 最終生存時刻を更新
+  server.time = Date.now();
+
+  res.json({ alive: true });
+});
   
+//10秒以上生存通知が来なかったら、サーバー情報を削除する
+setInterval(() => {
+  const now = Date.now();
+  const timeout = 10 * 1000; // 10秒
+
+  servers = servers.filter(s => {
+    if (now - s.time > timeout) {
+      console.log(`🛑 DEAD SERVER REMOVED: ${s.address}`);
+      return false;
+    }
+    return true;
+  });
+
+}, 5000); // 5秒ごとにチェックする
+
 app.post('/shutdown', (req, res) => {
     console.log("🔻 Shutdown request received. Closing server...");
 

@@ -13,22 +13,22 @@
 ALoginMenuGameMode::ALoginMenuGameMode()
 {
 	UE_LOG(LogTemp, Warning, TEXT("GameMode::LoginMenuGameMode"));
-	if (DefaultPawnClass != nullptr)
-	{
-		DefaultPawnClass = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClassSetting_NULL"));
-	}
 
-	UClass* HUD = ALogin_HUD::StaticClass();
+	DefaultPawnClass = nullptr;
 
-	if (HUD != nullptr)
+	if (!IsRunningDedicatedServer())
 	{
-		HUDClass = HUD;
-		UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingOK"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingNO"));
+		UClass* HUD = ALogin_HUD::StaticClass();
+
+		if (HUD != nullptr)
+		{
+			HUDClass = HUD;
+			UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingOK"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DefaultHUDSettingNO"));
+		}
 	}
 }
 

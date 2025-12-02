@@ -37,6 +37,9 @@ public:
 	UPROPERTY(Replicated)
 	bool is_host = false;
 
+	UPROPERTY(Replicated)
+	int player_number = 0;
+
 	//// 変数が変わった場合にOnRep_IsLoadedを実行する
 	//UPROPERTY(Replicated)
 	//bool is_loaded = false;
@@ -47,6 +50,9 @@ public:
 
 	UFUNCTION()
 	void My_State_Initialize();
+
+	UFUNCTION()
+	void Set_PlayerNumber(int32 number);
 
 	//UFUNCTION(Server, Reliable)
 	//void Server_Random_Item();

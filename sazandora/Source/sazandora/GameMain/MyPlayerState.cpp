@@ -21,6 +21,7 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMyPlayerState, buylist_crear);
 	DOREPLIFETIME(AMyPlayerState, is_loaded);
 	DOREPLIFETIME(AMyPlayerState, is_host);
+	DOREPLIFETIME(AMyPlayerState, player_number);
 }
 
 //// ロードが完了したどうか
@@ -227,4 +228,10 @@ void AMyPlayerState::OnItemUpdated()
 	{
 		pc->Refresh_UI();
 	}
+}
+
+// plaer_numberの格納
+void AMyPlayerState::Set_PlayerNumber(int32 number)
+{
+	this->player_number = number;
 }

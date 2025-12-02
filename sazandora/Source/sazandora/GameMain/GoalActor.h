@@ -7,7 +7,7 @@
 #include "GoalBoxComponent.h"
 #include "GoalActor.generated.h"
 
-UCLASS()
+UCLASS(Blueprintable)
 class SAZANDORA_API AGoalActor : public AActor
 {
 	GENERATED_BODY()

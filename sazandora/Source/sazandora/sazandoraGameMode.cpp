@@ -2,6 +2,8 @@
 
 #include "sazandoraGameMode.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
@@ -49,6 +51,7 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 
+	// 最初のプレイヤーにホストフラグを渡す
 	if (gs->PlayerArray.Num() == 1)
 	{
 		AMyPlayerState* ps = NewPlayer->GetPlayerState<AMyPlayerState>();
@@ -59,10 +62,47 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
+	if (AMyPlayerState* ps = NewPlayer->GetPlayerState<AMyPlayerState>())
+	{
+		// psに中身がちゃんとあるか
+		if (ps)
+		{
+			// player番号を格納
+			ps->Set_PlayerNumber(NextPlayerIndex);
+
+			UE_LOG(LogTemp, Log, TEXT("now team_number : %d"), ps->player_number);
+		}
+	}
+
 	NextPlayerIndex++;
 
 	UpdateServerInfoOnAPI();
 	RegisterServerToAPI();
+}
+
+void AsazandoraGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TArray<AActor*> starts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), starts);
+
+	for (int32 i = 0; i < starts.Num(); i++)
+	{
+		APlayerStart* start_point = Cast<APlayerStart>(starts[i]);
+
+		if (!start_point)
+		{
+			continue;
+		}
+
+		FString TagString = FString::Printf(TEXT("StartPoint_%d"), i);
+		FName NewTag(*TagString);
+
+		start_point->Tags.Add(NewTag);
+
+		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *start_point->GetName());
+	}
 }
 
 void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
@@ -71,12 +111,12 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 	if (p->Is_Cleared())
 	{
 		// テキストの表示
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is Goal"));
+		UE_LOG(LogTemp, Warning, TEXT("Player is Goal"));
 	}
 	else
 	{
 		// テキストの表示
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is not Goal"));
+		UE_LOG(LogTemp, Warning, TEXT("Player is not Goal"));
 	}
 }
 
@@ -208,6 +248,7 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 
 	// 探したいPlayerStartのタグ作成	例）CurrentPlayerIndexが0ならStartPoint_0を作成、1ならStartPoint_1になる
 	const FName TargetTag = FName(*FString::Printf(TEXT("StartPoint_%d"), CurrentPlayerIndex));
+	/*const FName TargetTag = FName(*FString::Printf(TEXT("%d"), CurrentPlayerIndex));*/
 
 	// ワールドに存在する全てのPlayerStartを探す	Itはイテレーター（要素にアクセスできるポインタ。++Itをすると次の要素に移動出来たりする）
 	for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
@@ -215,12 +256,37 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 		// StartPointに現在のポインタを格納する
 		APlayerStart* StartPoint = *It;
 
-		// StartPointが探しているタグ(TargetTag)と同じなら
-		if (StartPoint && StartPoint->ActorHasTag(TargetTag))
+		// TargetTagと比較しているPlayerStartが持つ据えてのタグを出力
+		FString AllTags = TEXT("");
+		for (const FName& Tag : StartPoint->Tags)
 		{
-			// StartPointを返り値として渡す
-			return StartPoint;
+			AllTags += Tag.ToString() + TEXT(" ");
+
+			UE_LOG(LogTemp, Warning, TEXT("StartPoint->Tags.Num() = %d"), StartPoint->Tags.Num());
+
+			// ターゲットタグとの直接比較結果を出力
+			if (Tag == TargetTag)
+			{
+				// 論理的にはここに入るはずなのに、ActorHasTagで通過しない場合は問題あり
+				UE_LOG(LogTemp, Error, TEXT("TAG MATCH FOUND via direct FName comparison: %s"), *Tag.ToString());
+				return StartPoint;
+			}
 		}
+
+		UE_LOG(LogTemp, Error, TEXT("StartPoint Name = %s"), *StartPoint->GetName());
+
+		// どのPlayerStartを探しているか、どのPlayerStartをチェックしているかを出力
+		UE_LOG(LogTemp, Log, TEXT("Checking PlayerStart at %s. TargetTag: %s. Actor Tags: %s"),
+			*StartPoint->GetActorLocation().ToString(),
+			*TargetTag.ToString(),
+			*AllTags);
+
+		// StartPointが探しているタグ(TargetTag)と同じなら
+		//if (StartPoint->GetActorTags().HasTag(TargetTag))
+		//{
+		//	// StartPointを返り値として渡す
+		//	return StartPoint;
+		//}
 	}
 
 	// なかった場合はログを出力

@@ -39,7 +39,12 @@ public:
 
 	// ダッシュ処理
 	void On_Dash_Pressed();
+
 	void On_Dash_Released();
+
+	UFUNCTION(Server, Reliable)
+	void Server_StartDash();
+
 	void Dash(float DeltaTime);		
 
 	// 会話キー
@@ -60,7 +65,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_JumpPressed();
 
-	int team_number = 0;
+	//int team_number = 0;
 
 private:
 

@@ -14,6 +14,10 @@ class AsazandoraGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+protected:
+
+	virtual void BeginPlay() override;
+
 public:
 	AsazandoraGameMode();
 

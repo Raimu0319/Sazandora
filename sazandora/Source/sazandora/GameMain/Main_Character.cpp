@@ -10,12 +10,15 @@
 #include "Components/CapsuleComponent.h"
 #include "MyPlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AMain_Character::AMain_Character()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+	SetReplicateMovement(true);
 
 	//カプセルコリジョン
 	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);
@@ -101,11 +104,17 @@ void AMain_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// ジャンプ処理
-	AMain_Character::Custom_Jump(DeltaTime);
+	if (HasAuthority())
+	{
+		// ダッシュ処理
+		AMain_Character::Dash(DeltaTime);
 
-	// ダッシュ処理
-	AMain_Character::Dash(DeltaTime);
+		// ジャンプ処理
+		AMain_Character::Custom_Jump(DeltaTime);
+
+		/*UE_LOG(LogTemp, Warning, TEXT("SERVER Character Pos: %s"),
+			*GetActorLocation().ToString());*/
+	}
 
 	AMain_Character::CheckInteract();
 
@@ -262,6 +271,7 @@ void AMain_Character::On_Dash_Pressed()
 {
 	b_IsDash = true;
 	Dash_HoldTime = 0.0f;
+	Server_StartDash();
 }
 
 // ダッシュボタンが離された時
@@ -269,6 +279,12 @@ void AMain_Character::On_Dash_Released()
 {
 	b_IsDash = false;
 	Dash_Speed = 0.0f;
+}
+
+void AMain_Character::Server_StartDash_Implementation()
+{
+	b_IsDash = true;
+	Dash_HoldTime = 0.0f;
 }
 
 // ダッシュ処理

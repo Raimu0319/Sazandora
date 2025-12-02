@@ -18,11 +18,20 @@ class SAZANDORA_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+
+	UPROPERTY(BlueprintReadWrite)
+	FString APIServerIP;
+
     virtual void Init() override;
     virtual void Shutdown() override;
-
-private:
 	void StartAPIServer();
 	void StopAPIServer();
+
+private:
 	FProcHandle NodeProcessHandle;
+
+	UFUNCTION()
+	void OnServerPreExit();
+
+	bool CleanedUp = false;
 };

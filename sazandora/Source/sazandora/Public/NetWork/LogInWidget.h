@@ -4,12 +4,14 @@
 #include "CoreMinimal.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
 #include "Components/ScrollBox.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Blueprint/UserWidget.h"
 #include "ServerListWidget.h"
+#include "UnableConnectWidget.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "Interfaces/IPv4/IPv4Address.h"
@@ -30,26 +32,36 @@ class SAZANDORA_API ULogInWidget : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
+	//Hostボタン
 	UPROPERTY(meta = (BindWidget))
 	UButton* HostButton;
 
+	//Joinボタン
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
 
+
+	//Joinを押した際にサーバー選択用画面にて使用するUI
 	// ScrollBoxにサーバー行を追加する用の参照（UMGでバインド）
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox* ServerListScrollBox;
 
-	// 「更新」ボタン
+	//サーバーリスト更新ボタン
 	UPROPERTY(meta = (BindWidget))
 	UButton* RefreshButton;
 
+	//Backボタン
 	UPROPERTY(meta = (BindWidget))
 	UButton* BackButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UEditableTextBox* IPAddressTextBox;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Server List")
 	TSubclassOf<class UServerListWidget> ServerListWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UnableConnectWidget")
+	TSubclassOf<class UUnableConnectWidget> UnableConnectWidget;
 
 private:
 	
@@ -59,6 +71,10 @@ private:
 	TArray<int32> OccupiedPorts;
 
 	bool HostServerStart = false;
+
+	FString APIServerIP;
+
+	void UnableConnectView(bool flag);
 public:
 
 	//コンストラクタ

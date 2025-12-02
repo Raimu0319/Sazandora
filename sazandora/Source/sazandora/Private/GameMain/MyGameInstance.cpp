@@ -8,8 +8,26 @@
 void UMyGameInstance::Init()
 {
 	Super::Init();
-	StartAPIServer();
+
+	//LogInWidgetで入力したアドレスをコマンドライン引数から抽出する(Dedicated Server用)
+	FString Value;
+	if (FParse::Value(FCommandLine::Get(), TEXT("apiip="), Value))
+	{
+		APIServerIP = Value;
+		UE_LOG(LogTemp, Warning, TEXT("API Server IP Passed: %s"), *Value);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NO API Server IP Passed: %s"), *Value);
+	}
+
+	if (IsRunningDedicatedServer())
+	{
+		StartAPIServer();
+	}
 	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Init"));
+
+	FCoreDelegates::OnPreExit.AddUObject(this, &UMyGameInstance::OnServerPreExit);
 }
 
 void UMyGameInstance::Shutdown()
@@ -19,11 +37,25 @@ void UMyGameInstance::Shutdown()
 	Super::Shutdown();
 }
 
+//何かしらの理由でShutdownが呼ばれなかった時のための終了処理
+void UMyGameInstance::OnServerPreExit()
+{
+	//二重処理防止
+	if (CleanedUp)
+	{
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:OnServerPreExit"));
+	CleanedUp = true;
+
+	StopAPIServer();	//APIサーバーを閉じる
+}
+
 void UMyGameInstance::StartAPIServer()
 {
 	FString NodePath = TEXT("C:/PG/Sazandora/sazandora/APIServer/APIServer.exe");
-	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
-	//FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+	//FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	FString ServerPath = FPaths::Combine(BaseDir, TEXT("APIServer/APIServer.exe"));
 
 	if (!FPaths::FileExists(ServerPath))
@@ -56,6 +88,7 @@ void UMyGameInstance::StopAPIServer()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Node.js:APIServerCloss..."));
 		FPlatformProcess::TerminateProc(NodeProcessHandle, true);
+		FPlatformProcess::WaitForProc(NodeProcessHandle);
 		FPlatformProcess::CloseProc(NodeProcessHandle);
 		NodeProcessHandle.Reset();
 	}

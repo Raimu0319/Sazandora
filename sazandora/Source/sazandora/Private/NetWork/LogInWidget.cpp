@@ -14,8 +14,10 @@ ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListWidgetBP(
-		TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C")
-	);
+		TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C"));
+
+	static ConstructorHelpers::FClassFinder<UUnableConnectWidget> UnableConnectWidgetBP(
+		TEXT("/Game/UI/Login_UI/UnableConnect_Widget.UnableConnect_Widget_C"));
 
 	if (ServerListWidgetBP.Succeeded())
 	{
@@ -25,6 +27,16 @@ ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to load ServerRowWidgetClass."));
+	}
+
+	if (UnableConnectWidgetBP.Succeeded())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UnableConnectWidgetClass loaded successfully!"));
+		UnableConnectWidget = UnableConnectWidgetBP.Class;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load UnableConnectWidgetClass"));
 	}
 }
 
@@ -70,9 +82,33 @@ void ULogInWidget::OnRefreshServerListClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Requesting server list..."));
 
+	APIServerIP = IPAddressTextBox->GetText().ToString();
+	if (APIServerIP.IsEmpty())
+	{
+		//APIServerIP = TEXT("192.168.0.5");
+		APIServerIP = TEXT("127.0.0.1");
+		UE_LOG(LogTemp, Warning, TEXT("UserIP_None..."));
+	}
+	else
+	{
+		UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+		if (GI)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("LoginWidget GI OK!!"));
+			GI->APIServerIP = APIServerIP;
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *APIServerIP);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("LoginWidget GI NO..."));
+		}
+		UE_LOG(LogTemp, Warning, TEXT("UserIP_Yes!!"));
+	}
+	FString URL = FString::Printf(TEXT("http://%s:3000/servers"), *APIServerIP);
+	
 	// HTTPリクエストを作成
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL(TEXT("http://127.0.0.1:3000/servers")); // Node.js 側のAPI URL
+	Request->SetURL(URL); // Node.js 側のAPI URL
 	Request->SetVerb(TEXT("GET"));
 	Request->OnProcessRequestComplete().BindUObject(this, &ULogInWidget::OnServerListReceived);
 	Request->ProcessRequest();
@@ -87,6 +123,11 @@ void ULogInWidget::OnBackButtonClicked()
 	RefreshButton->SetVisibility(ESlateVisibility::Hidden);
 	BackButton->SetVisibility(ESlateVisibility::Hidden);
 	UE_LOG(LogTemp, Warning, TEXT("ServerListHidden..."));
+
+	if (ServerListScrollBox)
+	{
+		ServerListScrollBox->ClearChildren();
+	}
 }
 
 void ULogInWidget::OnJoinButtonClicked()
@@ -116,9 +157,9 @@ void ULogInWidget::Server_Start()
 
 	//パッケージ化後のサーバーファイルパス
 	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
-	FString ServerPath = FPaths::Combine(BaseDir, TEXT("Server/sazandoraServer.exe"/*"Binaries/Win64/sazandoraServer.exe"*/));
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
 	//サーバー起動時に渡すコマンドライン引数
-	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port);
+	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?apiip=%s?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port, *APIServerIP);
 	//サーバー起動用ファイルを起動する
 	FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
 
@@ -194,7 +235,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 					UE_LOG(LogTemp, Warning, TEXT("NOPushPort"));
 				}
 				
-				// ウィジェット生成
+				// サーバーリストウィジェット生成
 				if (ServerListWidget && ServerListScrollBox)
 				{
 					UServerListWidget* Row = CreateWidget<UServerListWidget>(this, ServerListWidget);
@@ -202,7 +243,15 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 					{
 						UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_OK"));
 						UE_LOG(LogTemp, Warning, TEXT("PlayerCount:%d"), PlayerCount);
-						Row->Setup(Name, Address, PlayerCount, gameplay);
+						if (UnableConnectWidget)
+						{
+							UE_LOG(LogTemp, Warning, TEXT("UnableConnectWidget_OK"));
+						}
+						else
+						{
+							UE_LOG(LogTemp, Warning, TEXT("UnableConnectWidget_None...."));
+						}
+						Row->Setup(Name, Address, PlayerCount, gameplay, UnableConnectWidget);	//APIサーバーから取得した情報をセットする
 						ServerListScrollBox->AddChild(Row);
 					}
 				}
@@ -279,4 +328,19 @@ void ULogInWidget::ReleaseReservedPorts()
 
 	OccupiedPortSockets.Empty();
 	//OccupiedPorts.Empty(); // ポート番号もクリア
+}
+
+void ULogInWidget::UnableConnectView(bool flag)
+{
+	bool Widget_flag = flag;
+	UUnableConnectWidget* Row = CreateWidget<UUnableConnectWidget>(this, UnableConnectWidget);
+	if (flag)
+	{
+		Row->AddToViewport();
+		Row->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		Row->SetVisibility(ESlateVisibility::Hidden);
+	}
 }

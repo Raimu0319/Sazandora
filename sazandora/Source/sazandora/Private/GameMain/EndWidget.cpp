@@ -10,7 +10,7 @@ void UEndWidget::NativeConstruct()
 
 	if (TitleBack)
 	{
-		OnTitleBackButtonClicked();
+		TitleBack->OnClicked.AddDynamic(this, &UEndWidget::OnTitleBackButtonClicked);
 	}
 }
 

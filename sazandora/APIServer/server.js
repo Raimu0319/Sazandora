@@ -7,11 +7,11 @@ let servers = [];
 app.post('/register', (req, res) => {
   const { name, address, playerCount, maxPlayers, gameplay} = req.body;
  
-  /*if (playerCount === 0) 
+  if (playerCount === 0) 
   {
       servers = servers.filter(s => s.address !== address);
       return res.json({ removed: true });
-  }*/
+  }
  
   const existing = servers.find(s => s.address === address);
   if (!existing) {
@@ -58,7 +58,7 @@ app.put('/api/servers/update', (req, res) => {
   });
 
   //サーバーから生存通知を受け取る
-  app.post('/heartbeat', (req, res) => {
+  /*app.post('/heartbeat', (req, res) => {
   const { address } = req.body;
 
   const server = servers.find(s => s.address === address);
@@ -71,10 +71,10 @@ app.put('/api/servers/update', (req, res) => {
   server.time = Date.now();
 
   res.json({ alive: true });
-});
+});*/
   
 //10秒以上生存通知が来なかったら、サーバー情報を削除する
-setInterval(() => {
+/*setInterval(() => {
   const now = Date.now();
   const timeout = 10 * 1000; // 10秒
 
@@ -86,7 +86,7 @@ setInterval(() => {
     return true;
   });
 
-}, 5000); // 5秒ごとにチェックする
+}, 5000);*/ // 5秒ごとにチェックする
 
 app.post('/shutdown', (req, res) => {
     console.log("🔻 Shutdown request received. Closing server...");

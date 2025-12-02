@@ -21,10 +21,12 @@ void UMyGameInstance::Init()
 		UE_LOG(LogTemp, Warning, TEXT("NO API Server IP Passed: %s"), *Value);
 	}
 
-	if (IsRunningDedicatedServer())
+	/*if (IsRunningDedicatedServer())
 	{
 		StartAPIServer();
-	}
+	}*/
+
+	StartAPIServer();
 	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Init"));
 
 	FCoreDelegates::OnPreExit.AddUObject(this, &UMyGameInstance::OnServerPreExit);

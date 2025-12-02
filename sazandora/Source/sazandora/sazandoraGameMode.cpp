@@ -10,7 +10,6 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "GameMain/Main_Character.h"
-#include "GameMain/GoalActor.h"
 #include "GameMain/MyPlayerState.h"
 #include "GameMain/MyPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
@@ -34,8 +33,8 @@ AsazandoraGameMode::AsazandoraGameMode()
 	PlayerControllerClass = AMyPlayerController::StaticClass();
 
 	//Tickを有効にする
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;
+	/*PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;*/
 }
 
 void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
@@ -127,7 +126,7 @@ void AsazandoraGameMode::BeginPlay()
 
 		goal_point->Tags.Add(NewTag);
 
-		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), TagString, *goal_point->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *goal_point->GetName());
 	}
 
 	RegisterServerToAPI();	//APIServerに情報を登録する

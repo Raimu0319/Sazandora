@@ -6,9 +6,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
+#include "GameMain/GoalActor.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "GameMain/Main_Character.h"
+#include "GameMain/GoalActor.h"
 #include "GameMain/MyPlayerState.h"
 #include "GameMain/MyPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
@@ -106,6 +108,26 @@ void AsazandoraGameMode::BeginPlay()
 		start_point->Tags.Add(NewTag);
 
 		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *start_point->GetName());
+	}
+
+	TArray<AActor*> goal;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGoalActor::StaticClass(), goal);
+
+	for (int32 j = 0; j < goal.Num(); j++)
+	{
+		AGoalActor* goal_point = Cast<AGoalActor>(goal[j]);
+
+		if (!goal_point)
+		{
+			continue;
+		}
+
+		FString TagString = FString::Printf(TEXT("GoalPoint%d"), j);
+		FName NewTag(TagString);
+
+		goal_point->Tags.Add(NewTag);
+
+		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), TagString, *goal_point->GetName());
 	}
 
 	RegisterServerToAPI();	//APIServerに情報を登録する

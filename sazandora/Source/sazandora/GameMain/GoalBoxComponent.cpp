@@ -83,9 +83,8 @@ void UGoalBoxComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 					}
 					else
 					{
-						UE_LOG(LogTemp, Error, TEXT("%s tag not find...") , TargetTag);
+						UE_LOG(LogTemp, Error, TEXT("%s tag not find...") , *TargetTag.ToString());
 					}
-
 				}
 			}
 		}

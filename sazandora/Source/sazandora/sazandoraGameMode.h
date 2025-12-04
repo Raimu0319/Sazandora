@@ -18,8 +18,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick(float DeltaTime) override;
-
 public:
 	AsazandoraGameMode();
 
@@ -54,9 +52,10 @@ private:
 	bool gameplay  = false;
 
 	void RegisterServerToAPI();
-	void SendHeartbeatToAPI();
 
 	float Time_count;
 	FString Get_IPAddress();
 	FString URL; //APIサーバー用のURL格納変数
+
+	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HeartbeatRequest;
 };

@@ -31,10 +31,6 @@ AsazandoraGameMode::AsazandoraGameMode()
 
 	// カスタムPlayerControllerの設定
 	PlayerControllerClass = AMyPlayerController::StaticClass();
-
-	//Tickを有効にする
-	/*PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;*/
 }
 
 void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
@@ -81,7 +77,7 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 
 	NextPlayerIndex++;
 
-	UpdateServerInfoOnAPI();
+	//UpdateServerInfoOnAPI();
 	RegisterServerToAPI();
 }
 
@@ -107,6 +103,8 @@ void AsazandoraGameMode::BeginPlay()
 		start_point->Tags.Add(NewTag);
 
 		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *start_point->GetName());
+
+		RegisterServerToAPI();
 	}
 
 	TArray<AActor*> goal;
@@ -132,17 +130,6 @@ void AsazandoraGameMode::BeginPlay()
 	RegisterServerToAPI();	//APIServerに情報を登録する
 }
 
-void AsazandoraGameMode::Tick(float DeltaTime)
-{
-	//サーバーが終了していないことをAPIサーバーに通知する
-	Time_count += DeltaTime;
-	if (Time_count >= 5.0f)
-	{
-		SendHeartbeatToAPI();
-		Time_count = 0.0f;
-		UE_LOG(LogTemp, Warning, TEXT("Tick"));
-	}
-}
 
 void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 {
@@ -347,7 +334,7 @@ void AsazandoraGameMode::Logout(AController* Exiting)
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextPlayerIndex);
 
 	UpdateServerInfoOnAPI();
-	RegisterServerToAPI();
+	//RegisterServerToAPI();
 }
 
 void AsazandoraGameMode::RegisterServerToAPI()
@@ -448,9 +435,25 @@ FString AsazandoraGameMode::Get_IPAddress()
 
 void AsazandoraGameMode::UpdateServerInfoOnAPI()
 {
+	UE_LOG(LogTemp, Warning, TEXT("UpdateServerInfoOnAPI"));
 	// APIエンドポイント
-	//FString Url = TEXT("http://127.0.0.1:3000/api/servers/update");
 	int32 Port = GetWorld()->URL.Port;
+
+	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	FString Address;
+	if (GI)
+	{
+		Address = GI->APIServerIP;
+		UE_LOG(LogTemp, Warning, TEXT("GIOK_UpdataServer:%s"), *Address);
+	}
+	else
+	{
+		Address = TEXT("127.0.0.1");
+		UE_LOG(LogTemp, Warning, TEXT("GINO_UpdataServer:%s"), *Address);
+	}
+
+	FString Url = FString::Printf(TEXT("http://%s:3000/api/servers/update"), *Address);
+	UE_LOG(LogTemp, Warning, TEXT("UpdateServerInfoOnAPI PUT URL = %s"), *Url);
 	FString ServerName = FString::Printf(TEXT("Server:%d"), Port);
 	int32 PlayerCount = NextPlayerIndex;
 	int32 MaxPlayers = 4;
@@ -468,7 +471,7 @@ void AsazandoraGameMode::UpdateServerInfoOnAPI()
 
 	// HTTPリクエスト作成
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL(URL);
+	Request->SetURL(Url);
 	Request->SetVerb(TEXT("PUT"));  // ここが「更新」
 	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 	Request->SetContentAsString(OutputString);
@@ -493,25 +496,3 @@ void AsazandoraGameMode::Set_Gameplay(bool flag)
 	gameplay = flag;
 }
 
-//APIサーバーにサーバー起動中の通知を送る
-void AsazandoraGameMode::SendHeartbeatToAPI()
-{
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request =
-		FHttpModule::Get().CreateRequest();
-
-	Request->SetURL(URL);
-	Request->SetVerb(TEXT("POST"));
-	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-
-	// JSONデータ作成（ServerIdなど）
-	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField("serverId", Get_IPAddress());
-
-	FString Body;
-	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
-	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
-
-	Request->SetContentAsString(Body);
-
-	Request->ProcessRequest();
-}

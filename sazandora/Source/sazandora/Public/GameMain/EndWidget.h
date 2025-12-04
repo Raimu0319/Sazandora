@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -23,6 +23,12 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ResultText;
 
+public:
+	UPROPERTY(BlueprintReadOnly)
+	bool clear_flg = false;
+
+	void Set_ClearFlg(bool flg);
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -30,4 +36,7 @@ private:
 	UFUNCTION()
 	void OnTitleBackButtonClicked();
 	
+	UFUNCTION()
+	void Set_ResltText_Text();
+
 };

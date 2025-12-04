@@ -9,10 +9,10 @@
 AMyPlayerController::AMyPlayerController()
 {
 	static ConstructorHelpers::FClassFinder<UHUDWidget> widgetclass(TEXT("/Game/ThirdPerson/widget/BP_HUDWidget2"));
-	static ConstructorHelpers::FClassFinder<UStartWaitWidget> start_wait_widgetclass(TEXT("/Game/ThirdPerson/widget/BP_StartWaitWidget"));
+	static ConstructorHelpers::FClassFinder<UStartWaitWidget> create_startwait_widgetclass(TEXT("/Game/ThirdPerson/widget/BP_StartWaitWidget"));
+	static ConstructorHelpers::FClassFinder<UEndWidget> create_EndWidget_class(TEXT("/Game/UI/End_UI/End_Widget"));
 
-
-	// widgetclssが見つかっているか
+	// HUDwidgetclssが見つかっているか
 	if (widgetclass.Succeeded())
 	{
 		// 参照できた場合はクラス情報をHUDWidget_classに保存する
@@ -24,16 +24,29 @@ AMyPlayerController::AMyPlayerController()
 		UE_LOG(LogTemp, Log, TEXT("HUDWidget is not find..."));
 	}
 
-	// widgetclssが見つかっているか
-	if (start_wait_widgetclass.Succeeded())
+	// StartWaitwidgetclssが見つかっているか
+	if (create_startwait_widgetclass.Succeeded())
 	{
 		// 参照できた場合はクラス情報をwait_widgetに保存する
-		StartWaitWidget_class = start_wait_widgetclass.Class;
+		StartWaitWidget_class = create_startwait_widgetclass.Class;
 	}
 	else
 	{
 		// 参照できない場合はログを出力
-		UE_LOG(LogTemp, Log, TEXT("start_wait_widgetclass is not find..."));
+		UE_LOG(LogTemp, Log, TEXT("create_startwait_widgetclass is not find..."));
+	}
+
+
+	// StartWaitwidgetclssが見つかっているか
+	if (create_EndWidget_class.Succeeded())
+	{
+		// 参照できた場合はクラス情報をend_widgetに保存する
+		EndWidget_class = create_EndWidget_class.Class;
+	}
+	else
+	{
+		// 参照できない場合はログを出力
+		UE_LOG(LogTemp, Log, TEXT("create_EndWidget_class is not find..."));
 	}
 }
 
@@ -102,6 +115,7 @@ void AMyPlayerController::BeginPlay()
 
 }
 
+// Playerがログインした時の処理
 void AMyPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -110,6 +124,8 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 	if (HasAuthority())
 	{
 		AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+		
+		// nullチェック
 		if (PS)
 		{
 			UE_LOG(LogTemp, Log, TEXT("[OnPossess] Init PlayerState %s"), *PS->GetName());
@@ -131,6 +147,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 	}
 }
 
+// PlayerStateがちゃんと紐づけられたタイミングで呼ぶ関数
 void AMyPlayerController::NotifyLoaded()
 {
 	// 一度実行済みならスキップする
@@ -165,6 +182,7 @@ void AMyPlayerController::NotifyLoaded()
 	// serverへ自分のロード完了を通知
 	player_state->Server_SetLoaded(true);
 
+	// 待機画面の作成
 	Create_WaitStartWidget();
 
 	// Notify関数が呼ばれたログ
@@ -197,6 +215,7 @@ void AMyPlayerController::Create_HUDWidget()
 			AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
 			HUDWidget_pointer->InitializeWidget(ps);				// Widgetの初期化
 
+			// カメラ操作や入力権限を渡す
 			FInputModeGameOnly InputMode;
 			SetInputMode(InputMode);
 			bShowMouseCursor = false;
@@ -204,19 +223,20 @@ void AMyPlayerController::Create_HUDWidget()
 	}
 }
 
+// 待機画面生成
 void AMyPlayerController::Create_WaitStartWidget()
 {
 	// すでに生成済みならスキップ
 	if (wait_widget && wait_widget->IsValidLowLevel() && wait_widget->IsInViewport())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] HUDWidget already exists - skipped creation"), *GetName());
+		UE_LOG(LogTemp, Warning, TEXT("[%s] wait_widget already exists - skipped creation"), *GetName());
 		return;
 	}
 
 	// 所有権が自分で、StartWaitWidget_classがnullptrではなければ
 	if (IsLocalController() && StartWaitWidget_class)
 	{
-		// UHUDWidgetの生成
+		// wait_widgetの生成
 		wait_widget = CreateWidget<UStartWaitWidget>(this, StartWaitWidget_class);
 
 		// 生成に失敗してなければ
@@ -230,12 +250,48 @@ void AMyPlayerController::Create_WaitStartWidget()
 			InputMode.SetWidgetToFocus(wait_widget->TakeWidget());
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
+			// 入力をマウスカーソルのみにする
 			SetInputMode(InputMode);
 			bShowMouseCursor = true;
 		}
 	}
 }
 
+// 終了画面生成
+void AMyPlayerController::Create_EndWidget()
+{
+	// すでに生成済みならスキップ
+	if (end_widget && end_widget->IsValidLowLevel() && end_widget->IsInViewport())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] end_widget already exists - skipped creation"), *GetName());
+		return;
+	}
+
+	// 所有権が自分で、EndWidget_classがnullptrではなければ
+	if (IsLocalController() && EndWidget_class)
+	{
+		// end_widgetの生成
+		end_widget = CreateWidget<UEndWidget>(this, EndWidget_class);
+
+		// 生成に失敗してなければ
+		if (end_widget)
+		{
+			// 画面に表示
+			end_widget->AddToViewport();
+
+			// PlayerController側で
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(end_widget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+			// 入力をマウスカーソルのみにする
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
+		}
+	}
+}
+
+// ゲーム開始関数
 void AMyPlayerController::Client_StartGame_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[Client_StartGame] %s | IsLocal=%d | NetMode=%d | Role=%d | RemoteRole=%d"),
@@ -246,6 +302,7 @@ void AMyPlayerController::Client_StartGame_Implementation()
 		return;
 	}
 
+	// wait_widgetが存在する場合削除する
 	if (wait_widget)
 	{
 		wait_widget->RemoveFromParent();
@@ -262,7 +319,7 @@ void AMyPlayerController::Client_StartGame_Implementation()
 			{
 				Create_HUDWidget();
 
-				UE_LOG(LogTemp, Warning, TEXT("[%s] NotifyLoaded skipped: PlayerState not ready"), *GetName());
+				UE_LOG(LogTemp, Warning, TEXT("Create HUDWidget"));
 			}
 			else
 			{
@@ -279,6 +336,71 @@ void AMyPlayerController::Client_StartGame_Implementation()
 			}
 
 		}, 0.3f, false);
+}
+
+// ゲーム終了処理
+void AMyPlayerController::Client_EndGame_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[Client_EndGame] %s | IsLocal=%d | NetMode=%d | Role=%d | RemoteRole=%d"),
+		*GetName(), IsLocalController(), (int)GetNetMode(), (int)GetLocalRole(), (int)GetRemoteRole());
+
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	// HUDWidget_pointerが存在する場合削除する
+	if (HUDWidget_pointer)
+	{
+		HUDWidget_pointer->RemoveFromParent();
+		HUDWidget_pointer = nullptr;
+	}
+
+	// playerstateの取得
+	// 少し遅らせてHUDを生成（レプリケーション完了待ち）
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			// playerstateがnullptrかどうかチェック
+			if (AMyPlayerState* player_state = GetPlayerState<AMyPlayerState>())
+			{
+				// EndWidgetの生成
+				Create_EndWidget();
+
+				// クリアしたかどうかをwidgetに伝える
+				Set_EndWidget_Text(player_state->is_player_clear);
+
+				if (player_state->is_player_clear)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("is_player_clear is true"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("is_player_clear is false"));
+				}
+
+				UE_LOG(LogTemp, Warning, TEXT("Create EndWidget"));
+			}
+			else
+			{
+				// 少し後で再試行(ロード遅延対策)
+				FTimerHandle Retryhandle;
+
+				GetWorldTimerManager().SetTimer(Retryhandle, [this]()
+					{
+						//再実行
+						Client_EndGame();
+					}, 0.1f, false);
+
+				return;
+			}
+
+		}, 0.3f, false);
+}
+
+void AMyPlayerController::Set_EndWidget_Text(bool flg)
+{
+	end_widget->Set_ClearFlg(flg);
 }
 
 // ウィジェットの更新

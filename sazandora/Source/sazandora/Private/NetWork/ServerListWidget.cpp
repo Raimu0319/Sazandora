@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "NetWork/ServerListWidget.h"
@@ -26,13 +26,13 @@ UServerListWidget::UServerListWidget(const FObjectInitializer& ObjectInitializer
 
 void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int playercount, bool gameplay, TSubclassOf<class UUnableConnectWidget> point)
 {
-    // Žó‚¯Žæ‚Á‚½î•ñ‚ðŽ©•ª‚Ì“à•”‚É•Û‘¶
+    // å—ã‘å–ã£ãŸæƒ…å ±ã‚’è‡ªåˆ†ã®å†…éƒ¨ã«ä¿å­˜
     ServerIP = IP;
     PlayerCount = playercount;
     GamePlay = gameplay;
     UnableConnectWidget = point;
 
-    // ƒT[ƒo[–¼‚ðUIã‚É•\Ž¦
+    // ã‚µãƒ¼ãƒãƒ¼åã‚’UIä¸Šã«è¡¨ç¤º
     if (ServerNameText)
     {
         ServerNameText->SetText(FText::FromString(ServerName));
@@ -49,7 +49,7 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
         PlayerCountText->SetText(FText::FromString(MyString));
     }
 
-    if (playercount >= 2 || gameplay)
+    if (playercount >= 4 || gameplay)
     {
         ServerNameText->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
         ServerIPAddress->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
@@ -62,7 +62,7 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
         PlayerCountText->SetColorAndOpacity(FLinearColor::Green);
     }
 
-    // ƒ{ƒ^ƒ“‚ÌƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ð“o˜^
+    // ãƒœã‚¿ãƒ³ã®ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’ç™»éŒ²
     if (ConnectButton)
     {
         ConnectButton->OnClicked.AddDynamic(this, &UServerListWidget::OnConnectClicked);
@@ -71,7 +71,7 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
 
 void UServerListWidget::OnConnectClicked()
 {
-    if (PlayerCount >= 1 || GamePlay)
+    if (PlayerCount >= 4 || GamePlay)
     {
         UWorld* World = GetWorld();
         if (World)

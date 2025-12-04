@@ -138,6 +138,19 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 	{
 		// テキストの表示
 		UE_LOG(LogTemp, Warning, TEXT("Player is Goal"));
+
+		// クリアフラグをセット
+		p->Set_Is_PlayerClear(true);
+
+		UE_LOG(LogTemp, Log, TEXT("プレイヤーがゴールしました。試合終了！"));
+
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
+			{
+				PC->Client_EndGame();
+			}
+		}
 	}
 	else
 	{
@@ -331,10 +344,20 @@ void AsazandoraGameMode::Logout(AController* Exiting)
 	{
 		NextPlayerIndex--;
 	}
+
+	// ゲーム中フラグがtrueの場合にサーバーの人数が0になった場合
+	if (gameplay)
+	{
+		if (NextPlayerIndex <= 0)
+		{
+			gameplay = false;
+		}
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextPlayerIndex);
 
 	UpdateServerInfoOnAPI();
-	//RegisterServerToAPI();
+	RegisterServerToAPI();
 }
 
 void AsazandoraGameMode::RegisterServerToAPI()

@@ -22,6 +22,7 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMyPlayerState, is_loaded);
 	DOREPLIFETIME(AMyPlayerState, is_host);
 	DOREPLIFETIME(AMyPlayerState, player_number);
+	DOREPLIFETIME(AMyPlayerState, is_player_clear);
 }
 
 //// ロードが完了したどうか
@@ -186,6 +187,20 @@ void AMyPlayerState::Buy_Item(int i, bool flg)
 {
 	buylist_crear[i] = flg;
 	//OnItemUpdated();
+}
+
+void AMyPlayerState::Set_Is_PlayerClear(bool flg)
+{
+	if (flg)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("flg = true"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("flg = false"));
+	}
+
+	is_player_clear = flg;
 }
 
 void AMyPlayerState::OnRep_BuyList()

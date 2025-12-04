@@ -40,6 +40,9 @@ public:
 	UPROPERTY(Replicated)
 	int player_number = 0;
 
+	UPROPERTY(Replicated)
+	bool is_player_clear = false;
+
 	//// 変数が変わった場合にOnRep_IsLoadedを実行する
 	//UPROPERTY(Replicated)
 	//bool is_loaded = false;
@@ -62,6 +65,9 @@ public:
 	void Buy_Item(int i, bool flg);
 
 	UFUNCTION()
+	void Set_Is_PlayerClear(bool flg);
+
+	UFUNCTION()
 	void OnRep_BuyList();
 
 	bool Is_Cleared() const;
@@ -77,6 +83,9 @@ public:
 	// 変数が変わった場合にOnRep_IsLoadedを実行する
 	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
 	bool is_loaded = false;
+
+	//UPROPERTY()
+	//bool is_clear = false;
 
 
 protected:

@@ -26,18 +26,17 @@ public:
     void Setup(const FString& ServerName, const FString& IP, int PlayerCount, bool gameplay, TSubclassOf<class UUnableConnectWidget> point);
 
 protected:
-    // Blueprint上のTextBlockとButtonをC++に紐付ける
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* ServerNameText;
+    class UTextBlock* ServerNameText;   //サーバー名表示用テキストブロック
 
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* ServerIPAddress;
+    class UTextBlock* ServerIPAddress;  //サーバーのIPアドレス表示用テキストブロック
 
     UPROPERTY(meta = (BindWidget))
-    UTextBlock* PlayerCountText;
+    UTextBlock* PlayerCountText;        //サーバーに居るプレイヤーの数表示用テキストブロック
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* ConnectButton;
+    class UButton* ConnectButton;       //サーバー接続用のボタン
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UnableConnectWidget")
     TSubclassOf<class UUnableConnectWidget>UnableConnectWidget;

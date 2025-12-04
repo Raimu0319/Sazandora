@@ -74,7 +74,6 @@ private:
 
 	FString APIServerIP;
 
-	void UnableConnectView(bool flag);
 public:
 
 	//コンストラクタ

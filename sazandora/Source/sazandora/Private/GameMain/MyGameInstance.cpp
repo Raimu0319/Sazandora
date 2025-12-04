@@ -26,7 +26,7 @@ void UMyGameInstance::Init()
 		StartAPIServer();
 	}*/
 
-	StartAPIServer();
+	StartAPIServer();	//APIサーバー開始
 	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Init"));
 
 	FCoreDelegates::OnPreExit.AddUObject(this, &UMyGameInstance::OnServerPreExit);
@@ -53,11 +53,11 @@ void UMyGameInstance::OnServerPreExit()
 	StopAPIServer();	//APIサーバーを閉じる
 }
 
-void UMyGameInstance::StartAPIServer()
+void UMyGameInstance::StartAPIServer()	//APIサーバー起動関数
 {
-	FString NodePath = TEXT("C:/PG/Sazandora/sazandora/APIServer/APIServer.exe");
-	/*FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());*/
-	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+	
+	/*FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());*/	//パッケージ化して実行する際のファイルパス
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());		//UEエディタ上で実行する際のファイルパス
 	FString ServerPath = FPaths::Combine(BaseDir, TEXT("APIServer/APIServer.exe"));
 
 	if (!FPaths::FileExists(ServerPath))
@@ -84,7 +84,7 @@ void UMyGameInstance::StartAPIServer()
 	}
 }
 
-void UMyGameInstance::StopAPIServer()
+void UMyGameInstance::StopAPIServer()	//APIサーバー停止関数
 {
 	if (NodeProcessHandle.IsValid())
 	{

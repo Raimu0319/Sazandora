@@ -6,24 +6,26 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
-#include "../../NetWork/NetWorkGameModeBase.h"
 #include "../Public/NetWork/ServerListWidget.h"
 
 
 ULogInWidget::ULogInWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	//自身がサーバーではなくクライアントだったら
 	if (!IsRunningDedicatedServer())
 	{
-
+		//Blueprintで作成したWidgetを探すためのアセット参照パス
 		static ConstructorHelpers::FClassFinder<UUserWidget> ServerListWidgetBP(
 			TEXT("/Game/UI/Login_UI/ServerList_Widget.ServerList_Widget_C"));
 
 		static ConstructorHelpers::FClassFinder<UUnableConnectWidget> UnableConnectWidgetBP(
 			TEXT("/Game/UI/Login_UI/UnableConnect_Widget.UnableConnect_Widget_C"));
 
+		//このパスでアセットが見つかったか
 		if (ServerListWidgetBP.Succeeded())
 		{
+			//アセットが見つかったらアセットクラスを変数に保持する
 			ServerListWidget = ServerListWidgetBP.Class;
 			UE_LOG(LogTemp, Warning, TEXT("ServerRowWidgetClass loaded successfully!"));
 		}
@@ -86,20 +88,25 @@ void ULogInWidget::OnRefreshServerListClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Requesting server list..."));
 
+	//テキストボックスの値をFstring型に変換して格納する
 	APIServerIP = IPAddressTextBox->GetText().ToString();
+
+	//もしテキストボックスの値が空だったら
 	if (APIServerIP.IsEmpty())
 	{
-		//APIServerIP = TEXT("192.168.0.5");
+		//デフォルトとして127.0.0.1を格納する
 		APIServerIP = TEXT("127.0.0.1");
 		UE_LOG(LogTemp, Warning, TEXT("UserIP_None..."));
 	}
-	else
+	else	//テキストボックスが空じゃなかったら
 	{
+		//ゲームインスタンスのポインタ取得
 		UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+
 		if (GI)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("LoginWidget GI OK!!"));
-			GI->APIServerIP = APIServerIP;
+			GI->APIServerIP = APIServerIP;		//ゲームインスタンスの変数にテキストボックスの値を格納し、保持する
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *APIServerIP);
 		}
 		else
@@ -108,6 +115,8 @@ void ULogInWidget::OnRefreshServerListClicked()
 		}
 		UE_LOG(LogTemp, Warning, TEXT("UserIP_Yes!!"));
 	}
+
+	//HTTPリクエスト用のURL作成（このURLを使用して、APIサーバーに接続する）
 	FString URL = FString::Printf(TEXT("http://%s:3000/servers"), *APIServerIP);
 	
 	// HTTPリクエストを作成
@@ -128,6 +137,7 @@ void ULogInWidget::OnBackButtonClicked()
 	BackButton->SetVisibility(ESlateVisibility::Hidden);
 	UE_LOG(LogTemp, Warning, TEXT("ServerListHidden..."));
 
+	//サーバーリストをクリアする
 	if (ServerListScrollBox)
 	{
 		ServerListScrollBox->ClearChildren();
@@ -163,7 +173,7 @@ void ULogInWidget::Server_Start()
 	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
 	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
 	//サーバー起動時に渡すコマンドライン引数
-	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?apiip=%s?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port, *APIServerIP);
+	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?apiip=%s ?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port, *APIServerIP);
 	//サーバー起動用ファイルを起動する
 	FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
 
@@ -174,7 +184,7 @@ void ULogInWidget::Server_Start()
 		{
 			FString IPAddress = TEXT("127.0.0.1");
 			UGameplayStatics::OpenLevel(GetWorld(), FName(*FString::Printf(TEXT("%s:%d"), *IPAddress, Port)));
-			ReleaseReservedPorts();
+			ReleaseReservedPorts();	//サーバーに接続したらSocketを解放する
 		}, 2.0f, false);
 
 	UE_LOG(LogTemp, Warning, TEXT("ListenServer_Start"));	//TEXT()に渡す時は英語で渡す（クラッシュ防止）
@@ -315,7 +325,7 @@ int32 ULogInWidget::CheckforfreePorts()
 
 }
 
-void ULogInWidget::ReleaseReservedPorts()
+void ULogInWidget::ReleaseReservedPorts()	//Socket解放用関数
 {
 	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
 
@@ -330,19 +340,4 @@ void ULogInWidget::ReleaseReservedPorts()
 
 	OccupiedPortSockets.Empty();
 	//OccupiedPorts.Empty(); // ポート番号もクリア
-}
-
-void ULogInWidget::UnableConnectView(bool flag)
-{
-	bool Widget_flag = flag;
-	UUnableConnectWidget* Row = CreateWidget<UUnableConnectWidget>(this, UnableConnectWidget);
-	if (flag)
-	{
-		Row->AddToViewport();
-		Row->SetVisibility(ESlateVisibility::Visible);
-	}
-	else
-	{
-		Row->SetVisibility(ESlateVisibility::Hidden);
-	}
 }

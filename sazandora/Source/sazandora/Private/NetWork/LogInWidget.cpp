@@ -160,7 +160,7 @@ void ULogInWidget::OnJoinButtonClicked()
 
 void ULogInWidget::Server_Start()
 {
-	int32  Port = CheckforfreePorts();	//使用できるポート番号検索
+	int32  Port = Check_FreePorts();	//使用できるポート番号検索
 
 	if (Port < 0)
 	{
@@ -279,7 +279,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 	}
 }
 
-int32 ULogInWidget::CheckforfreePorts()
+int32 ULogInWidget::Check_FreePorts()	//使われていないポート番号を検索する
 {
 	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
 

@@ -104,6 +104,6 @@ public:
 	void OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	//サーバー起動の際に空いているPort番号を調べる
-	int32 CheckforfreePorts();
+	int32 Check_FreePorts();
 	void ReleaseReservedPorts();
 };

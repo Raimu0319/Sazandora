@@ -133,7 +133,7 @@ void AsazandoraGameMode::BeginPlay()
 	}
 }
 
-
+// クリア判定関数
 void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 {
 	// プレイヤーの買い物リストが全て達成済みかどうか
@@ -151,7 +151,27 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 		{
 			if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
 			{
-				PC->Client_EndGame();
+				AMyPlayerState* Target_player = PC->GetPlayerState<AMyPlayerState>();
+
+				if (!IsValid(Target_player))
+				{
+					UE_LOG(LogTemp, Error, TEXT("Target_player is INVALID"));
+					continue;
+				}
+
+				// 勝者判定
+				const bool Is_Winner = (Target_player == p);
+
+				if (Is_Winner)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Is_Winner is true"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Is_Winner is false"));
+				}
+
+				PC->Client_EndGame(Is_Winner);
 			}
 		}
 	}

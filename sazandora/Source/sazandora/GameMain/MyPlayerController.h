@@ -48,7 +48,7 @@ public:
 
 	// ゲーム終了関数
 	UFUNCTION(Client, Reliable)
-	void Client_EndGame();
+	void Client_EndGame(bool is_clear);
 	
 	void Refresh_UI();
 

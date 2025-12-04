@@ -56,7 +56,8 @@ void AMyPlayerState::My_State_Initialize()
 		buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
 
 		// 要素の初期化
-		buylist_crear = { false, false, false };
+		//buylist_crear = { false, false, false };
+		buylist_crear = { true, true, true };
 
 		// アイテムリストの作成
 		Random_Item();

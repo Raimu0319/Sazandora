@@ -339,7 +339,7 @@ void AMyPlayerController::Client_StartGame_Implementation()
 }
 
 // ゲーム終了処理
-void AMyPlayerController::Client_EndGame_Implementation()
+void AMyPlayerController::Client_EndGame_Implementation(bool is_clear)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[Client_EndGame] %s | IsLocal=%d | NetMode=%d | Role=%d | RemoteRole=%d"),
 		*GetName(), IsLocalController(), (int)GetNetMode(), (int)GetLocalRole(), (int)GetRemoteRole());
@@ -356,21 +356,24 @@ void AMyPlayerController::Client_EndGame_Implementation()
 		HUDWidget_pointer = nullptr;
 	}
 
+	if (is_clear)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("test is_player_clear is true"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("test is_player_clear is false"));
+	}
+
 	// playerstateの取得
 	// 少し遅らせてHUDを生成（レプリケーション完了待ち）
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+	GetWorldTimerManager().SetTimer(TimerHandle, [this, is_clear]()
 		{
 			// playerstateがnullptrかどうかチェック
 			if (AMyPlayerState* player_state = GetPlayerState<AMyPlayerState>())
 			{
-				// EndWidgetの生成
-				Create_EndWidget();
-
-				// クリアしたかどうかをwidgetに伝える
-				Set_EndWidget_Text(player_state->is_player_clear);
-
-				if (player_state->is_player_clear)
+				if (is_clear)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("is_player_clear is true"));
 				}
@@ -379,6 +382,13 @@ void AMyPlayerController::Client_EndGame_Implementation()
 					UE_LOG(LogTemp, Warning, TEXT("is_player_clear is false"));
 				}
 
+				// EndWidgetの生成
+				Create_EndWidget();
+
+				// クリアしたかどうかをwidgetに伝える
+				//Set_EndWidget_Text(is_clear);
+				end_widget->Set_ClearFlg(is_clear);
+
 				UE_LOG(LogTemp, Warning, TEXT("Create EndWidget"));
 			}
 			else
@@ -386,10 +396,13 @@ void AMyPlayerController::Client_EndGame_Implementation()
 				// 少し後で再試行(ロード遅延対策)
 				FTimerHandle Retryhandle;
 
-				GetWorldTimerManager().SetTimer(Retryhandle, [this]()
+				GetWorldTimerManager().SetTimer(Retryhandle, [this, is_clear]()
 					{
 						//再実行
-						Client_EndGame();
+						Client_EndGame(is_clear);
+
+						UE_LOG(LogTemp, Error, TEXT("Client_EndGame restart"));
+
 					}, 0.1f, false);
 
 				return;

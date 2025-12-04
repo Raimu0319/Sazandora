@@ -74,6 +74,8 @@ private:
 
 	FString APIServerIP;
 
+	FString GetLocalIPAddress();
+
 public:
 
 	//コンストラクタ

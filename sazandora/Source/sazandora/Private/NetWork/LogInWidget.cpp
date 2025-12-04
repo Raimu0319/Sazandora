@@ -84,7 +84,7 @@ void ULogInWidget::OnHostButtonClicked()
 	OnRefreshServerListClicked();
 }
 
-void ULogInWidget::OnRefreshServerListClicked()
+void ULogInWidget::OnRefreshServerListClicked()	//APIサーバーから情報を取得する関数
 {
 	UE_LOG(LogTemp, Warning, TEXT("Requesting server list..."));
 
@@ -94,8 +94,8 @@ void ULogInWidget::OnRefreshServerListClicked()
 	//もしテキストボックスの値が空だったら
 	if (APIServerIP.IsEmpty())
 	{
-		//デフォルトとして127.0.0.1を格納する
-		APIServerIP = TEXT("127.0.0.1");
+		//自身のIPアドレスを格納する
+		APIServerIP = GetLocalIPAddress();
 		UE_LOG(LogTemp, Warning, TEXT("UserIP_None..."));
 	}
 	else	//テキストボックスが空じゃなかったら
@@ -340,4 +340,18 @@ void ULogInWidget::ReleaseReservedPorts()	//Socket解放用関数
 
 	OccupiedPortSockets.Empty();
 	//OccupiedPorts.Empty(); // ポート番号もクリア
+}
+
+FString ULogInWidget::GetLocalIPAddress()
+{
+	bool bCanBindAll = false;
+
+	TSharedRef<FInternetAddr> LocalIp = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
+
+	uint32 OutIP;
+	LocalIp->GetIp(OutIP);
+
+	// UInt→IPv4文字列に変換
+	FIPv4Address IPv4Address(OutIP);
+	return IPv4Address.ToString();
 }

@@ -77,8 +77,8 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 
 	NextPlayerIndex++;
 
-	//UpdateServerInfoOnAPI();
-	RegisterServerToAPI();
+	UpdateServerInfoOnAPI();
+	//RegisterServerToAPI();
 }
 
 void AsazandoraGameMode::BeginPlay()
@@ -127,7 +127,10 @@ void AsazandoraGameMode::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *goal_point->GetName());
 	}
 
-	RegisterServerToAPI();	//APIServerに情報を登録する
+	if (IsRunningDedicatedServer())
+	{
+		RegisterServerToAPI();	//APIServerに情報を登録する
+	}
 }
 
 
@@ -357,7 +360,6 @@ void AsazandoraGameMode::Logout(AController* Exiting)
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextPlayerIndex);
 
 	UpdateServerInfoOnAPI();
-	RegisterServerToAPI();
 }
 
 void AsazandoraGameMode::RegisterServerToAPI()
@@ -386,31 +388,24 @@ void AsazandoraGameMode::RegisterServerToAPI()
 	// HTTPリクエスト作成
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 
-	if (!IsRunningDedicatedServer())
-	{
-		UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-		FString APIServerIP;
+	
+	//ゲームインスタンスのポインタ取得
+	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	FString APIServerIP;
 
-		if (GI)
-		{
-			APIServerIP = GI->APIServerIP;
-			if (APIServerIP.IsEmpty())
-			{
-				APIServerIP = TEXT("127.0.0.1");
-				UE_LOG(LogTemp, Warning, TEXT("APIServer:127.0.0.1"));
-			}
-			UE_LOG(LogTemp, Warning, TEXT("GameMode GI OK!!"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("GameMode GI No..."));
-		}
-		URL = FString::Printf(TEXT("http://%s:3000/register"), *APIServerIP);
+	if (GI)
+	{
+		//ゲームインスタンスの変数に保持していたIPアドレスを取得する
+		APIServerIP = GI->APIServerIP;
+		UE_LOG(LogTemp, Warning, TEXT("GameMode GI OK!!"));
 	}
 	else
 	{
-		URL = FString::Printf(TEXT("http://127.0.0.1:3000/register"));
+		UE_LOG(LogTemp, Warning, TEXT("GameMode GI No..."));
 	}
+
+	URL = FString::Printf(TEXT("http://%s:3000/register"), *APIServerIP);
+	
 
 	Request->SetURL(URL); // Node.js APIサーバーのURL
 	Request->SetVerb(TEXT("POST"));

@@ -481,7 +481,7 @@ FString AsazandoraGameMode::Get_IPAddress()
 	return Addr->ToString(true); // falseにするとポート番号を含まない
 }
 
-void AsazandoraGameMode::UpdateServerInfoOnAPI()
+void AsazandoraGameMode::UpdateServerInfoOnAPI()	//APIサーバーに登録している情報の更新処理
 {
 	UE_LOG(LogTemp, Warning, TEXT("UpdateServerInfoOnAPI"));
 	// APIエンドポイント
@@ -491,7 +491,18 @@ void AsazandoraGameMode::UpdateServerInfoOnAPI()
 	FString Address;
 	if (GI)
 	{
-		Address = GI->APIServerIP;
+		//ゲームインスタンスの変数に保持していたIPアドレスを取得する
+		if (GI->APIServerIP.IsEmpty())	//インスタンスに保持しているIPアドレスの中身を確認する
+		{
+			//中身が空だったら、自分のPCを指すループバックアドレスを代入
+			Address = TEXT("127.0.0.1");
+		}
+		else
+		{
+			//中身があったら、インスタンスのIPアドレスを代入
+			Address = GI->APIServerIP;
+		}
+
 		UE_LOG(LogTemp, Warning, TEXT("GIOK_UpdataServer:%s"), *Address);
 	}
 	else

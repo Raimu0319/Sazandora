@@ -18,6 +18,7 @@ void UMyGameInstance::Init()
 	}
 	else
 	{
+		APIServerIP = TEXT("127.0.0.1");
 		UE_LOG(LogTemp, Warning, TEXT("NO API Server IP Passed: %s"), *Value);
 	}
 

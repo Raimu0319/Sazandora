@@ -416,11 +416,21 @@ void AsazandoraGameMode::RegisterServerToAPI()
 	if (GI)
 	{
 		//ゲームインスタンスの変数に保持していたIPアドレスを取得する
-		APIServerIP = GI->APIServerIP;
+		if (GI->APIServerIP.IsEmpty())	//インスタンスに保持しているIPアドレスの中身を確認する
+		{
+			//中身が空だったら、自分のPCを指すループバックアドレスを代入
+			APIServerIP = TEXT("127.0.0.1");
+		}
+		else
+		{
+			//中身があったら、インスタンスのIPアドレスを代入
+			APIServerIP = GI->APIServerIP;
+		}
 		UE_LOG(LogTemp, Warning, TEXT("GameMode GI OK!!"));
 	}
 	else
 	{
+		APIServerIP = TEXT("127.0.0.1");
 		UE_LOG(LogTemp, Warning, TEXT("GameMode GI No..."));
 	}
 

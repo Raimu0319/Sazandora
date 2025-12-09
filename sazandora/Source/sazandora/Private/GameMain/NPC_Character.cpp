@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NPC_Character.h"
-#include "Main_Character.h"
+#include "../Public/GameMain/NPC_Character.h"
+#include "../Public/GameMain/Main_Character.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerController.h"
 

@@ -57,7 +57,7 @@ void UMyGameInstance::StartAPIServer()	//APIサーバー起動関数
 {
 	
 	/*FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());*/	//パッケージ化して実行する際のファイルパス
-	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());		//UEエディタ上で実行する際のファイルパス
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());	//UEエディタ上で実行する際のファイルパス
 	FString ServerPath = FPaths::Combine(BaseDir, TEXT("APIServer/APIServer.exe"));
 
 	if (!FPaths::FileExists(ServerPath))

@@ -1,12 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GoalBoxComponent.h"
+#include "../Public/GameMain/GoalBoxComponent.h"
 #include "GameFramework/Character.h"
 #include "sazandora/sazandoraGameMode.h"
-#include "Main_Character.h"
-#include "MyPlayerController.h"
-#include "MyPlayerState.h"
+#include "../Public/GameMain/Main_Character.h"
+#include "../Public/GameMain/MyPlayerController.h"
+#include "../Public/GameMain/MyPlayerState.h"
 
 UGoalBoxComponent::UGoalBoxComponent()
 {

@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "JUICE_NPC.h"
-#include "MyPlayerState.h"
-#include "Main_Character.h"
+#include "../Public/GameMain/JUICE_NPC.h"
+#include "../Public/GameMain/MyPlayerState.h"
+#include "../Public/GameMain/Main_Character.h"
 
 AJUICE_NPC::AJUICE_NPC()
 {

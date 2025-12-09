@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "POPCORN_NPC.h"
-#include "MyPlayerState.h"
-#include "Main_Character.h"
+#include "../Public/GameMain/HAMBRGER_NPC.h"
+#include "../Public/GameMain/MyPlayerState.h"
+#include "../Public/GameMain/Main_Character.h"
 
-APOPCORN_NPC::APOPCORN_NPC()
+AHAMBRGER_NPC::AHAMBRGER_NPC()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,35 +14,35 @@ APOPCORN_NPC::APOPCORN_NPC()
 	Is_Talk_Flg = false;
 
 	// 販売するアイテム
-	e_mytype = E_ITEM_TYPE::E_POPCORN;
+	e_mytype = E_ITEM_TYPE::E_HAMBRGER;
 }
 
 // Called when the game starts or when spawned
-void APOPCORN_NPC::BeginPlay()
+void AHAMBRGER_NPC::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
 // Called every frame
-void APOPCORN_NPC::Tick(float DeltaTime)
+void AHAMBRGER_NPC::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
 // 会話開始関数（プレイヤーが近づいたときなどに呼ぶ）
-void APOPCORN_NPC::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void AHAMBRGER_NPC::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnPlayerEnterRange(OverlappedComp, OtherActor, OtherComo, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
-void APOPCORN_NPC::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
+void AHAMBRGER_NPC::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Super::OnPlayerLeaveRange(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
-void APOPCORN_NPC::Talk_Event(AMain_Character* player)
+void AHAMBRGER_NPC::Talk_Event(AMain_Character* player)
 {
 	// プレイヤーの買い物リストを保存
 	//TArray<E_ITEM_TYPE> p_buylist = player->Get_ItemList();

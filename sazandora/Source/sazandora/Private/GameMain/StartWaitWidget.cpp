@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "StartWaitWidget.h"
+#include "../Public/GameMain/StartWaitWidget.h"
 #include "Components/Button.h"
 #include "GameFramework/GameStateBase.h"
-#include "MyPlayerController.h"
-#include "MyPlayerState.h"
+#include "../Public/GameMain/MyPlayerController.h"
+#include "../Public/GameMain/MyPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "sazandora/sazandoraGameMode.h"
 

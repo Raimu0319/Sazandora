@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "MyPlayerController.h"
+#include "../Public/GameMain/MyPlayerController.h"
 #include "Engine/Engine.h"
-#include "MyPlayerState.h"
+#include "../Public/GameMain/MyPlayerState.h"
 #include "../sazandoraGameMode.h"
 
 // コンストラクタ

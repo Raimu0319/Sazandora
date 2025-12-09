@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MyPlayerState.h"
-#include "HUDWidget.h"
+#include "../Public/GameMain/MyPlayerState.h"
+#include "../Public/GameMain/HUDWidget.h"
 #include "sazandora/sazandoraGameMode.h"
-#include "MyPlayerController.h"
+#include "../Public/GameMain/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 // 初期化
@@ -56,8 +56,8 @@ void AMyPlayerState::My_State_Initialize()
 		buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);
 
 		// 要素の初期化
-		//buylist_crear = { false, false, false };
-		buylist_crear = { true, true, true };
+		buylist_crear = { false, false, false };
+		/*buylist_crear = { true, true, true };*/
 
 		// アイテムリストの作成
 		Random_Item();

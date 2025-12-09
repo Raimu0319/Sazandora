@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Main_Character.h"
-#include "NPC_Character.h"
+#include "../Public/GameMain/Main_Character.h"
+#include "../Public/GameMain/NPC_Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "MyPlayerState.h"
+#include "../Public/GameMain/MyPlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 

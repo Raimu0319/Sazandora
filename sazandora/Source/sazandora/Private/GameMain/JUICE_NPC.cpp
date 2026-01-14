@@ -15,6 +15,14 @@ AJUICE_NPC::AJUICE_NPC()
 
 	// 販売するアイテム
 	e_mytype = E_ITEM_TYPE::E_JUICE;
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("/Game/PolygonCity/Meshes/Characters/SK_Character_Male_Jacket"));
+	if (MeshObj.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(MeshObj.Object);						//meshの設定
+		GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));	//座標の設定
+		GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));	//回転の設定
+	}
 }
 
 // Called when the game starts or when spawned

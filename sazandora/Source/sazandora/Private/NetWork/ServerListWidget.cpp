@@ -49,6 +49,8 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
         PlayerCountText->SetText(FText::FromString(MyString));
     }
 
+    //サーバーにプレイヤーが上限(4人)居る、またはサーバーでゲームが既に開始されていた場合は
+    //ログインできないことを視覚的にわかるようにフォントの色を赤色にする。
     if (playercount >= 4 || gameplay)
     {
         ServerNameText->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
@@ -71,6 +73,8 @@ void UServerListWidget::Setup(const FString& ServerName, const FString& IP, int 
 
 void UServerListWidget::OnConnectClicked()
 {
+    //サーバーに居るプレイヤー数が4人以上　または　ゲームが開始されいたら
+    //そのサーバーにはログインできないようにする
     if (PlayerCount >= 4 || GamePlay)
     {
         UWorld* World = GetWorld();
@@ -84,6 +88,7 @@ void UServerListWidget::OnConnectClicked()
             UE_LOG(LogTemp, Log, TEXT("World_None...."));
         }
 
+        //変数の中身がちゃんと入っているかの確認
         if (UnableConnectWidget)
         {
             UE_LOG(LogTemp, Log, TEXT("UnableConnectWidget_OK...."));
@@ -92,6 +97,7 @@ void UServerListWidget::OnConnectClicked()
         {
             UE_LOG(LogTemp, Log, TEXT("UnableConnectWidget_None...."));
         }
+
         UUnableConnectWidget* UnableWidget = CreateWidget<UUnableConnectWidget>(World, UnableConnectWidget);
         if (UnableWidget)
         {
@@ -102,10 +108,11 @@ void UServerListWidget::OnConnectClicked()
             UE_LOG(LogTemp, Log, TEXT("UnableConnectWidgetBP_NONE...."));
             return;
         }
+
         UnableWidget->AddToViewport();
         UnableWidget->SetVisibility(ESlateVisibility::Visible);
     }
-    else
+    else //if条件に当てはまらず、サーバーにログインできる状態ならログインする
     {
         FString ConnectString = FString::Printf(TEXT("%s"), *ServerIP);
         UE_LOG(LogTemp, Log, TEXT("Connecting to server: %s"), *ConnectString);

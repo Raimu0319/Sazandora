@@ -6,6 +6,7 @@
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
 #include "Components/ScrollBox.h"
+#include "Components/image.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
@@ -56,6 +57,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UEditableTextBox* IPAddressTextBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Title_Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Server List")
 	TSubclassOf<class UServerListWidget> ServerListWidget;

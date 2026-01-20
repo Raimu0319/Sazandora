@@ -132,6 +132,7 @@ void ULogInWidget::OnBackButtonClicked()
 	//画面表示(Visible,Hidden)を切り替える
 	HostButton->SetVisibility(ESlateVisibility::Visible);
 	JoinButton->SetVisibility(ESlateVisibility::Visible);
+	Title_Name->SetVisibility(ESlateVisibility::Visible);
 	ServerListScrollBox->SetVisibility(ESlateVisibility::Hidden);
 	RefreshButton->SetVisibility(ESlateVisibility::Hidden);
 	BackButton->SetVisibility(ESlateVisibility::Hidden);
@@ -149,6 +150,7 @@ void ULogInWidget::OnJoinButtonClicked()
 	//画面表示(Visible,Hidden)を切り替える
 	HostButton->SetVisibility(ESlateVisibility::Hidden);
 	JoinButton->SetVisibility(ESlateVisibility::Hidden);
+	Title_Name->SetVisibility(ESlateVisibility::Hidden);
 	ServerListScrollBox->SetVisibility(ESlateVisibility::Visible);
 	RefreshButton->SetVisibility(ESlateVisibility::Visible);
 	BackButton->SetVisibility(ESlateVisibility::Visible);
@@ -169,9 +171,12 @@ void ULogInWidget::Server_Start()
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Using Port: %d"), Port);
 
-	//パッケージ化後のサーバーファイルパス
-	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());
-	FString ServerPath = FPaths::Combine(BaseDir, TEXT(/*"Server/sazandoraServer.exe"*/"Binaries/Win64/sazandoraServer.exe"));
+	
+	//FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::LaunchDir());		//パッケージ化後のサーバーファイルパス
+	FString BaseDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());		//デバック時のファイルパス
+
+	//FString ServerPath = FPaths::Combine(BaseDir, TEXT("Server/sazandoraServer.exe"));	//パッケージ化後のサーバーファイルパス
+	FString ServerPath = FPaths::Combine(BaseDir, TEXT("Binaries/Win64/sazandoraServer.exe"));	//デバック時のファイルパス
 	//サーバー起動時に渡すコマンドライン引数
 	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?apiip=%s ?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port, *APIServerIP);
 	//サーバー起動用ファイルを起動する
@@ -225,6 +230,7 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 			{
 				TSharedPtr<FJsonObject> ServerData = ServerValue->AsObject();
 
+				//APIサーバーから受け取った情報(サーバーネーム、アドレス等)を変数に代入する
 				FString Name = ServerData->GetStringField(TEXT("name"));
 				FString Address = ServerData->GetStringField(TEXT("address"));
 				int32 PlayerCount = ServerData->GetNumberField(TEXT("playerCount"));
@@ -251,7 +257,8 @@ void ULogInWidget::OnServerListReceived(FHttpRequestPtr Request, FHttpResponsePt
 				if (ServerListWidget && ServerListScrollBox)
 				{
 					UServerListWidget* Row = CreateWidget<UServerListWidget>(this, ServerListWidget);
-					if (Row)
+
+					if (Row)	//RowがNULL(空)ではなかった際のデバック用ログ出力処理
 					{
 						UE_LOG(LogTemp, Warning, TEXT("ServerListWidget_OK"));
 						UE_LOG(LogTemp, Warning, TEXT("PlayerCount:%d"), PlayerCount);
@@ -351,7 +358,7 @@ FString ULogInWidget::GetLocalIPAddress()
 	uint32 OutIP;
 	LocalIp->GetIp(OutIP);
 
-	// UInt→IPv4文字列に変換
+	// uint→IPv4文字列に変換
 	FIPv4Address IPv4Address(OutIP);
 	return IPv4Address.ToString();
 }

@@ -4,11 +4,38 @@
 #include "GameMain/MyGameInstance.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/Paths.h"
+#if PLATFORM_WINDOWS
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include <windows.h>
+#include "Windows/HideWindowsPlatformTypes.h"
+#endif
+
+static UMyGameInstance* GMyGI = nullptr;
+
+#if PLATFORM_WINDOWS
+BOOL WINAPI ConsoleHandler(DWORD CtrlType)
+{
+	if (CtrlType == CTRL_CLOSE_EVENT ||
+		CtrlType == CTRL_C_EVENT ||
+		CtrlType == CTRL_SHUTDOWN_EVENT)
+	{
+		if (GMyGI)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Console close detected → stop API server"));
+			GMyGI->StopAPIServer();
+
+			Sleep(300); // プロセスが殺される前にAPIを落とす猶予
+		}
+	}
+	return false;
+}
+#endif
 
 void UMyGameInstance::Init()
 {
 	Super::Init();
 
+	GMyGI = this;
 	//LogInWidgetで入力したアドレスをコマンドライン引数から抽出する(Dedicated Server用)
 	FString Value;
 	if (FParse::Value(FCommandLine::Get(), TEXT("apiip="), Value))
@@ -31,6 +58,10 @@ void UMyGameInstance::Init()
 	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Init"));
 
 	FCoreDelegates::OnPreExit.AddUObject(this, &UMyGameInstance::OnServerPreExit);
+
+#if PLATFORM_WINDOWS
+	SetConsoleCtrlHandler(ConsoleHandler, true);
+#endif
 }
 
 void UMyGameInstance::Shutdown()

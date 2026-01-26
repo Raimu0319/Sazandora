@@ -26,7 +26,7 @@ public:
     virtual void Shutdown() override;
 	void StartAPIServer();
 	void StopAPIServer();
-
+	void SendShutdownToAPI();
 private:
 	FProcHandle NodeProcessHandle;
 

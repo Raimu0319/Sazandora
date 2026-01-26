@@ -21,10 +21,11 @@ ANPC_Character::ANPC_Character()
 	TalkRange->SetSphereRadius(200.0f);
 	TalkRange->SetCollisionProfileName(TEXT("Trigger"));
 
-	// スフィアコリジョンのOverlapイベントをバインド
-	TalkRange->OnComponentBeginOverlap.AddDynamic(this, &ANPC_Character::OnPlayerEnterRange);
-	TalkRange->OnComponentEndOverlap.AddDynamic(this, &ANPC_Character::OnPlayerLeaveRange);
-	TalkRange->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	//// スフィアコリジョンのOverlapイベントをバインド
+	//TalkRange->OnComponentBeginOverlap.AddDynamic(this, &ANPC_Character::OnPlayerEnterRange);
+	//TalkRange->OnComponentEndOverlap.AddDynamic(this, &ANPC_Character::OnPlayerLeaveRange);
+	TalkRange->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TalkRange->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);		// SetCollisionResponseToChannel(可視化するかどうか、当たり判定の設定)
 
 	// 会話範囲にプレイヤーがいるかどうか
 	Is_Talk_Flg = false;

@@ -11,6 +11,7 @@
 #include "../Public/GameMain/MyPlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMain_Character::AMain_Character()
@@ -79,6 +80,12 @@ AMain_Character::AMain_Character()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
+
+	GuideArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("GuideArrow"));
+	GuideArrow->SetupAttachment(RootComponent);
+	GuideArrow->SetRelativeLocation(FVector(0, 0, 100)); // 頭の上
+	GuideArrow->SetHiddenInGame(false);
+	GuideArrow->SetVisibility(true);
 }
 
 // Called when the game starts or when spawned
@@ -97,6 +104,17 @@ void AMain_Character::BeginPlay()
 	//	FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
 	//	UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
 	//}
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPC_Character::StaticClass(), FoundActors);
+
+	for (AActor* Actor : FoundActors)
+	{
+		if (ANPC_Character* NPC = Cast<ANPC_Character>(Actor))
+		{
+			NPCList.Add(NPC);
+		}
+	}
 }
 
 // Called every frame
@@ -114,6 +132,16 @@ void AMain_Character::Tick(float DeltaTime)
 
 		/*UE_LOG(LogTemp, Warning, TEXT("SERVER Character Pos: %s"),
 			*GetActorLocation().ToString());*/
+	}
+
+	NearestNPC = FindNearestNPC_FromList();
+
+	if (NearestNPC && GuideArrow)
+	{
+		FVector Dir = NearestNPC->GetActorLocation() - GetActorLocation();
+		FRotator Rot = Dir.Rotation();
+
+		GuideArrow->SetWorldRotation(Rot);
 	}
 
 	AMain_Character::CheckInteract();
@@ -344,25 +372,29 @@ bool AMain_Character::Server_Talk_NPC_Validate()
 // 会話キー
 void AMain_Character::On_Talk_Eventkey_Implementation()
 {
-	if (TargetNPC != nullptr)
-	{
-		//	空中にいる場合はジャンプをしないようにする
-		if (GetCharacterMovement()->IsFalling())
-		{
-			//	空中にいる場合は処理を行わない
-			return;
-		}
+	//if (TargetNPC != nullptr)
+	//{
+	//	//	空中にいる場合はジャンプをしないようにする
+	//	if (GetCharacterMovement()->IsFalling())
+	//	{
+	//		//	空中にいる場合は処理を行わない
+	//		return;
+	//	}
 
-		Server_Talk_NPC();
-	}
+	//	// サーバー経由でトークイベントを開始する
+	//	Server_Talk_NPC();
+	//}
 }
 
+// サーバーで会話イベントを起動する
 void AMain_Character::Server_Talk_NPC_Implementation()
 {
-	if (TargetNPC && Is_Talk)
-	{
-		TargetNPC->Talk_Event(this);
-	}
+	// NPCのポインタが入っていて、話しかけられる状態か？
+	//if (TargetNPC && Is_Talk)
+	//{
+	//	// 会話イベントの開始
+	//	TargetNPC->Talk_Event(this);
+	//}
 }
 
 void AMain_Character::Set_Talk_Flg(bool talk_flg)
@@ -390,6 +422,7 @@ void AMain_Character::CheckInteract()
 		{
 			// ポインタをセット
 			CurrentInteractNPC = hit_npc;
+			UE_LOG(LogTemp, Log, TEXT("find is npc "));
 			return;
 		}
 	}
@@ -401,9 +434,12 @@ void AMain_Character::CheckInteract()
 // 会話開始リクエスト
 void AMain_Character::Try_Talk()
 {
+	// 会話するNPCが範囲にいるか
 	if (CurrentInteractNPC)
 	{
 		UE_LOG(LogTemp, Log, TEXT("talk start npc "));
+
+		// サーバー経由で話しかける
 		Server_RequestTalk(CurrentInteractNPC);
 	}
 	else
@@ -412,8 +448,10 @@ void AMain_Character::Try_Talk()
 	}
 }
 
+// サーバー経由で会話イベントの起動
 void AMain_Character::Server_RequestTalk_Implementation(ANPC_Character* npc)
 {
+	// ヌルポチェック
 	if (!npc)
 	{
 		UE_LOG(LogTemp, Log, TEXT("npc not find... "));
@@ -437,4 +475,24 @@ void AMain_Character::Server_RequestTalk_Implementation(ANPC_Character* npc)
 void AMain_Character::Set_NPC_Pointer(ANPC_Character* npc_charcter)
 {
 	TargetNPC = npc_charcter;
+}
+
+ANPC_Character* AMain_Character::FindNearestNPC_FromList()
+{
+	float MinDist = FLT_MAX;
+	ANPC_Character* Result = nullptr;
+
+	for (ANPC_Character* NPC : NPCList)
+	{
+		if (!IsValid(NPC)) continue;
+
+		float Dist = FVector::Dist(GetActorLocation(), NPC->GetActorLocation());
+
+		if (Dist < MinDist)
+		{
+			MinDist = Dist;
+			Result = NPC;
+		}
+	}
+	return Result;
 }

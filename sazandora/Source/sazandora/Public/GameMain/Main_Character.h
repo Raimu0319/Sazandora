@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Item_Type.h"
+#include "NPC_Character.h"
+#include "Components/ArrowComponent.h"
 #include "Main_Character.generated.h"
 
 class ANPC_Character;
@@ -122,4 +124,18 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_RequestTalk(ANPC_Character* npc);
+
+	UPROPERTY()
+	TArray<ANPC_Character*> NPCList;
+
+	UPROPERTY()
+	ANPC_Character* NearestNPC;
+
+	// 矢印（3Dで出す想定）
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UArrowComponent* GuideArrow;
+
+	ANPC_Character* FindNearestNPC_FromList();
+
+
 };

@@ -405,15 +405,41 @@ void AMain_Character::Set_Talk_Flg(bool talk_flg)
 // ライントレースで会話可能範囲にいるかどうかの判定
 void AMain_Character::CheckInteract()
 {
+	int32 ViewportX, ViewportY;		// 画面（ビューポート）の横・縦サイズ（ピクセル）
+	FVector WorldPos;				// 線の始点
+	FVector WorldDir;				// 選の向き（長さは１）
+	APlayerController* P_Controller = GetController<APlayerController>();
+	if (!P_Controller)
+	{
+		return;
+	}
+
+	P_Controller->GetViewportSize(ViewportX, ViewportY);	// 画面サイズの取得
+	
+	// 画面中央からカメラを通る一本の線を取得
+	P_Controller->DeprojectScreenPositionToWorld(
+	ViewportX * 0.5f, 
+	ViewportY * 0.5f,
+	WorldPos,
+	WorldDir);
+
 	FHitResult hit;
-	FVector Start = CameraComp->GetComponentLocation();
-	FVector End = Start + CameraComp->GetForwardVector() * 550.0f;
+	FVector Start = WorldPos;
+	FVector End = Start + WorldDir * 550.0f;
 
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	if (GetWorld()->LineTraceSingleByChannel(hit, Start, End, ECC_Visibility, Params))
+	if(GetWorld()->SweepSingleByChannel(
+		hit,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Visibility,
+		FCollisionShape::MakeSphere(40.0f), // ← 太さ
+		Params
+	))
 	{
 		ANPC_Character* hit_npc = Cast<ANPC_Character>(hit.GetActor());
 
@@ -422,7 +448,7 @@ void AMain_Character::CheckInteract()
 		{
 			// ポインタをセット
 			CurrentInteractNPC = hit_npc;
-			UE_LOG(LogTemp, Log, TEXT("find is npc "));
+			UE_LOG(LogTemp, Log, TEXT("find is npc "))
 			return;
 		}
 	}

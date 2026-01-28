@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Item_Type.h"
 #include "NPC_Character.generated.h"
 
@@ -36,6 +37,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category="NPC")
 	class USphereComponent* TalkRange;
 
+	UPROPERTY(VisibleAnywhere, Category="NPC")
+	class UCapsuleComponent* Capsule;
+
 	// 会話開始関数（プレイヤーが近づいたときなどに呼ぶ）
 	UFUNCTION()
 	virtual void OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -45,6 +49,9 @@ public:
 	UFUNCTION()
 	virtual void OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void  SetOutline(AMain_Character* player);
 
 	// 会話イベント
 	UFUNCTION()

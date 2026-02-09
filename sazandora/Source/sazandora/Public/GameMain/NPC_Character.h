@@ -57,6 +57,9 @@ public:
 	UFUNCTION()
 	virtual void Talk_Event(AMain_Character* player);
 
+	UFUNCTION()
+	E_ITEM_TYPE Get_ItemType();
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

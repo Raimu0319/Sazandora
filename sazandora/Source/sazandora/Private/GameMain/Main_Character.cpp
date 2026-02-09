@@ -3,6 +3,7 @@
 
 #include "../Public/GameMain/Main_Character.h"
 #include "../Public/GameMain/NPC_Character.h"
+#include "TimerManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/InputComponent.h"
@@ -105,6 +106,7 @@ void AMain_Character::BeginPlay()
 	//	UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
 	//}
 
+		// NPCの検索
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPC_Character::StaticClass(), FoundActors);
 
@@ -115,6 +117,14 @@ void AMain_Character::BeginPlay()
 			NPCList.Add(NPC);
 		}
 	}
+
+	// タイムハンドルの作成
+	FTimerHandle TimerHandle;
+
+	// ゴールアクターが生成されていない状態での参照を防ぐため１フレームずらして実行
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,this, &AMain_Character::FindMyGoalPoint,0.3,false
+	);
 }
 
 // Called every frame
@@ -134,18 +144,44 @@ void AMain_Character::Tick(float DeltaTime)
 			*GetActorLocation().ToString());*/
 	}
 
-	NearestNPC = FindNearestNPC_FromList();
+	// MyPlayerStateの入手
+	AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
 
-	if (NearestNPC && GuideArrow)
+	// nullチェック
+	if (!ps)
 	{
-		FVector Dir = NearestNPC->GetActorLocation() - GetActorLocation();
-		FRotator Rot = Dir.Rotation();
+		return;
+	}
 
-		GuideArrow->SetWorldRotation(Rot);
+	// プレイヤーがお使いを終わらせているかどうか
+	if (ps->Is_Cleared())
+	{
+		// 終わらせてる場合ゴール地点の探索
+		if (MyGoalPoint && GuideArrow)
+		{
+			FVector Dir = MyGoalPoint->GetActorLocation() - GetActorLocation();		// 座標計算
+			FRotator Rot = Dir.Rotation();											// 角度の計算
+
+			GuideArrow->SetWorldRotation(Rot);			// 向きの変更
+		}
+	}
+	else		// 終わらせていない場合
+	{
+
+		// 一番近いNPCのポインタを取得する
+		NearestNPC = FindNearestNPC_FromList();
+
+		// NPCのポインタとArrowのポインタが存在している場合
+		if (NearestNPC && GuideArrow)
+		{
+			FVector Dir = NearestNPC->GetActorLocation() - GetActorLocation();		// 座標計算
+			FRotator Rot = Dir.Rotation();											// 角度の計算
+
+			GuideArrow->SetWorldRotation(Rot);				// 向きの変更
+		}
 	}
 
 	AMain_Character::CheckInteract();
-
 }
 
 // Called to bind functionality to input
@@ -503,22 +539,118 @@ void AMain_Character::Set_NPC_Pointer(ANPC_Character* npc_charcter)
 	TargetNPC = npc_charcter;
 }
 
+// 一番近いNPCを探す関数
 ANPC_Character* AMain_Character::FindNearestNPC_FromList()
 {
-	float MinDist = FLT_MAX;
-	ANPC_Character* Result = nullptr;
+	float MinDist = FLT_MAX;				// デカい数値
+	ANPC_Character* Result = nullptr;		// 見つかった一番近いNPCを格納
 
+	// NPCListを一つずつ、すべてチェック
 	for (ANPC_Character* NPC : NPCList)
 	{
+		// すでに消されていたり、nullptrのnpcを避ける
 		if (!IsValid(NPC)) continue;
 
-		float Dist = FVector::Dist(GetActorLocation(), NPC->GetActorLocation());
+		// 買い物リストにあるNPCだけを検出するためにPlayerStateの取得
+		AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
 
-		if (Dist < MinDist)
+		// nullptr参照対策
+		if (!IsValid(ps))
 		{
-			MinDist = Dist;
-			Result = NPC;
+			continue;
+		}
+
+		// 買い物リストにあるアイテムを販売してるNPCを探す
+		for (int32 i = 0; i < ps->player_buy_list.Num(); i++)
+		{
+			// 買い物リストにあるアイテムを販売しているか
+			if (ps->player_buy_list[i] == NPC->Get_ItemType() && ps->buylist_crear[i] != true)
+			{
+				// プレイヤーの座標とNPCの座標と
+				float Dist = FVector::Dist(GetActorLocation(), NPC->GetActorLocation());
+
+				// 今まで見た中で一番近いなら更新する
+				if (Dist < MinDist)
+				{
+					MinDist = Dist;		// MinDistの更新
+					Result = NPC;		// Resultの更新
+				}
+			}
 		}
 	}
+
+	// 一番近いnpcのポインタを返す
+	if (Result)
+	{
+		// デバッグするため一番近いNPCの取得とそのNPCの販売アイテムの表示
+		switch (Result->Get_ItemType())
+		{
+		case E_ITEM_TYPE::E_NONE:
+			UE_LOG(LogTemp, Error, TEXT("Nearby NPC not ItemType"));
+			break;
+		case E_ITEM_TYPE::E_JUICE:
+			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_JUICE"));
+			break;
+		case E_ITEM_TYPE::E_HAMBRGER:
+			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_HAMBRGER"));
+			break;
+		case E_ITEM_TYPE::E_DONUT:
+			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_DONUT"));
+			break;
+		case E_ITEM_TYPE::E_POPCORN:
+			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_POPCORN"));
+			break;
+		default:
+			break;
+		}
+	}
+
 	return Result;
+}
+
+// ゴール地点登録処理
+void AMain_Character::FindMyGoalPoint()
+{
+	// 自分のゴール地点の探索
+	TArray<AActor*> goal;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGoalActor::StaticClass(), goal);
+
+	// GoalActorの数ループ
+	for (int32 j = 0; j < goal.Num(); j++)
+	{
+		// GoalActorの取得
+		AGoalActor* goal_point = Cast<AGoalActor>(goal[j]);
+
+		// nullptrチェック
+		if (!goal_point)
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("GetAllActorsOfClass success!"));
+
+		// MyPlayerStateの取得
+		AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
+
+		// nullptrチェック
+		if (!ps)
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("GetPlayerState success!"));
+
+		// 探したいGoalPointのタグ作成	例）player_numberが0ならGoalPoint_0を作成、1ならGoalPoint_1になる
+		const FName TargetTag = FName(*FString::Printf(TEXT("GoalPoint_%d"), ps->player_number));
+
+		// AGoslActorについているタグが探しているタグ（TargetTag）が同じなら
+		if (goal_point->ActorHasTag(TargetTag))
+		{
+			// MyGoalPointに格納
+			MyGoalPoint = goal_point;
+
+			// ログの出力
+			UE_LOG(LogTemp, Warning, TEXT("MyGoalPoint = TargetName: %s"), *goal_point->GetName());
+		}
+	}
 }

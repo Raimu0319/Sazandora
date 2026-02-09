@@ -135,6 +135,12 @@ void ANPC_Character::Talk_Event(AMain_Character* player)
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Player is in"));
 }
 
+// 販売アイテムの取得
+E_ITEM_TYPE ANPC_Character::Get_ItemType()
+{
+	return this->e_mytype;
+}
+
 void ANPC_Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Item_Type.h"
 #include "NPC_Character.h"
+#include "GoalActor.h"
 #include "Components/ArrowComponent.h"
 #include "Main_Character.generated.h"
 
@@ -131,11 +132,17 @@ protected:
 	UPROPERTY()
 	ANPC_Character* NearestNPC;
 
+	UPROPERTY()
+	AGoalActor* MyGoalPoint;
+
 	// 矢印（3Dで出す想定）
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UArrowComponent* GuideArrow;
 
 	ANPC_Character* FindNearestNPC_FromList();
 
+	// ゴール地点登録処理
+	UFUNCTION()
+	void FindMyGoalPoint();
 
 };

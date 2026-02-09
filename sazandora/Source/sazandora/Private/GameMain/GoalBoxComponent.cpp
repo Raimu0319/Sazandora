@@ -63,7 +63,7 @@ void UGoalBoxComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 					// GameModeの取得
 					AsazandoraGameMode* my_gamemode = GetWorld()->GetAuthGameMode<AsazandoraGameMode>();
 
-					// 探したいPlayerStartのタグ作成	例）CurrentPlayerIndexが0ならStartPoint_0を作成、1ならStartPoint_1になる
+					// 探したいPlayerStartのタグ作成	例）CurrentPlayerIndexが0ならGoalPoint_0を作成、1ならGoalPoint_1になる
 					const FName TargetTag = FName(*FString::Printf(TEXT("GoalPoint_%d"), ps->player_number));
 
 					// 自身についているタグが探したいタグと同じか

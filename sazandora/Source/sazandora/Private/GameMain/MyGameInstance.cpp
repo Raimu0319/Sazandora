@@ -49,10 +49,16 @@ void UMyGameInstance::Init()
 		UE_LOG(LogTemp, Warning, TEXT("NO API Server IP Passed: %s"), *Value);
 	}
 
-	/*if (IsRunningDedicatedServer())
+	if (IsRunningDedicatedServer())
 	{
-		StartAPIServer();
-	}*/
+		GetWorld()->GetTimerManager().SetTimer(
+			HeartbeatTimer,
+			this,
+			&UMyGameInstance::UpdateServerInfoOnAPI,
+			10.0f,
+			true
+		);
+	}
 
 	StartAPIServer();	//APIサーバー開始
 	UE_LOG(LogTemp, Warning, TEXT("MyGameInstance:Init"));
@@ -130,4 +136,88 @@ void UMyGameInstance::StopAPIServer()	//APIサーバー停止関数
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Node.js:APIServerNOCloss..."));
 	}
+}
+
+void UMyGameInstance::UpdateServerInfoOnAPI()	//APIサーバーに登録している情報の更新処理
+{
+	UE_LOG(LogTemp, Warning, TEXT("UpdateServerInfoOnAPI"));
+	// APIエンドポイント
+	int32 Port = GetWorld()->URL.Port;
+
+	FString Address;
+	
+		//ゲームインスタンスの変数に保持していたIPアドレスを取得する
+		if (APIServerIP.IsEmpty())	//インスタンスに保持しているIPアドレスの中身を確認する
+		{
+			//中身が空だったら、自分のPCを指すループバックアドレスを代入
+			Address = TEXT("127.0.0.1");
+		}
+		else
+		{
+			//中身があったら、インスタンスのIPアドレスを代入
+			Address = APIServerIP;
+		}
+
+
+	FString Url = FString::Printf(TEXT("http://%s:3000/api/servers/update"), *Address);
+	UE_LOG(LogTemp, Warning, TEXT("UpdateServerInfoOnAPI PUT URL = %s"), *Url);
+	FString ServerName = FString::Printf(TEXT("Server:%d"), Port);
+	int32 MaxPlayers = 4;
+
+	// JSONオブジェクト作成
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+	JsonObject->SetStringField(TEXT("name"), ServerName);
+	JsonObject->SetNumberField(TEXT("playerCount"), PlayerCount);
+	JsonObject->SetNumberField(TEXT("maxPlayers"), MaxPlayers);
+	JsonObject->SetBoolField(TEXT("gameplay"), false);
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+
+	// HTTPリクエスト作成
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+	Request->SetURL(Url);
+	Request->SetVerb(TEXT("PUT"));  // ここが「更新」
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetContentAsString(OutputString);
+
+	//OnProcessRequestComplete()：HTTP通信が完了した際に呼ばれるイベント
+	//BindLambda()：OnProcessRequestComplete()が呼ばれたらBindLambdaの{}内の処理を行う
+	//第一引数：FHttpRequestPtr Request = 送信したリクエスト(URLやPUTなど)
+	//第二引数：FHttpResponsePtr Response = 接続したサーバーから返ってきたレスポンス
+	//第三引数：bool bWasSuccessful = 通信が成功したか, true = 接続成功, false = 接続不可
+	Request->OnProcessRequestComplete().BindLambda([](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			//通信失敗またはHTTPの応答が無かったら
+			if (!bWasSuccessful || !Response.IsValid())
+			{
+				//エラーログを表示
+				UE_LOG(LogTemp, Error, TEXT("HTTP Request failed (no response)"));
+				return;
+			}
+
+			int32 Code = Response->GetResponseCode();
+
+			//HTTP通信が成功したかどうか
+			//Code == 200：成功
+			//一部例(HTTPステータスコード参照)：Code == 500：サーバーエラー
+			if (Code == 200)
+			{
+				//通信成功ログ
+				UE_LOG(LogTemp, Warning, TEXT("Server info updated successfully."));
+			}
+			else
+			{
+				//通信失敗ログ
+				UE_LOG(LogTemp, Error, TEXT("Failed to update server info: %s"), *Response->GetContentAsString());
+			}
+		});
+
+	Request->ProcessRequest();	//リクエスト送信
+}
+
+void UMyGameInstance::Set_PlayerCount(int32_t count)
+{
+	PlayerCount = count;
 }

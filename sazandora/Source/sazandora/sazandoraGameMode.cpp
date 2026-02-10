@@ -76,7 +76,8 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	NextPlayerIndex++;
-
+	UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+	GI->Set_PlayerCount(NextPlayerIndex);
 	UpdateServerInfoOnAPI();
 	//RegisterServerToAPI();
 }
@@ -100,11 +101,22 @@ void AsazandoraGameMode::BeginPlay()
 		FString TagString = FString::Printf(TEXT("StartPoint_%d"), i);
 		FName NewTag(*TagString);
 
-		start_point->Tags.Add(NewTag);
+		/*start_point->Tags.Add(NewTag);*/
+
+		if (!start_point->Tags.Contains(NewTag))
+		{
+			start_point->Tags.Add(NewTag);
+		}
 
 		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *start_point->GetName());
 
-		RegisterServerToAPI();
+		UE_LOG(LogTemp, Warning, TEXT("---- PlayerStart List ----"));
+
+		for (int32 j = 0; j < starts.Num(); j++)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[%d] %s"), j, *starts[j]->GetName());
+		}
+		//RegisterServerToAPI();
 	}
 
 	TArray<AActor*> goal;
@@ -129,6 +141,9 @@ void AsazandoraGameMode::BeginPlay()
 
 	if (IsRunningDedicatedServer())
 	{
+		//ゲームインスタンスのポインタ取得
+		UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+		GI->Set_PlayerCount(NextPlayerIndex);
 		RegisterServerToAPI();	//APIServerに情報を登録する
 	}
 }
@@ -310,6 +325,7 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 
 	// 探したいPlayerStartのタグ作成	例）CurrentPlayerIndexが0ならStartPoint_0を作成、1ならStartPoint_1になる
 	const FName TargetTag = FName(*FString::Printf(TEXT("StartPoint_%d"), CurrentPlayerIndex));
+	UE_LOG(LogTemp, Warning, TEXT("StartPoint = %d"), CurrentPlayerIndex);
 	/*const FName TargetTag = FName(*FString::Printf(TEXT("%d"), CurrentPlayerIndex));*/
 
 	// ワールドに存在する全てのPlayerStartを探す	Itはイテレーター（要素にアクセスできるポインタ。++Itをすると次の要素に移動出来たりする）
@@ -317,7 +333,6 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 	{
 		// StartPointに現在のポインタを格納する
 		APlayerStart* StartPoint = *It;
-
 		// TargetTagと比較しているPlayerStartが持つ据えてのタグを出力
 		FString AllTags = TEXT("");
 		for (const FName& Tag : StartPoint->Tags)
@@ -376,6 +391,9 @@ void AsazandoraGameMode::Logout(AController* Exiting)
 			gameplay = false;
 		}
 	}
+
+	UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+	GI->Set_PlayerCount(NextPlayerIndex);
 
 	UE_LOG(LogTemp, Warning, TEXT("NextSpawnIndex = %d"), NextPlayerIndex);
 

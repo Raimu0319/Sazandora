@@ -26,12 +26,13 @@ public:
     virtual void Shutdown() override;
 	void StartAPIServer();
 	void StopAPIServer();
-	void SendShutdownToAPI();
+	void Set_PlayerCount(int32_t count);
 private:
 	FProcHandle NodeProcessHandle;
-
+	FTimerHandle HeartbeatTimer;
+	int32_t PlayerCount;
 	UFUNCTION()
 	void OnServerPreExit();
-
+	void UpdateServerInfoOnAPI();
 	bool CleanedUp = false;
 };

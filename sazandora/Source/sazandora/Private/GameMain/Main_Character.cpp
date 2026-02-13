@@ -32,7 +32,7 @@ AMain_Character::AMain_Character()
 	Jump_HoldTime = 0.0f;			//押し続けた時間
 	Max_Jump_HoldTime = 0.3f;		//最大押し続け時間(秒)
 	Min_Jump_Strength = 300.0f;		//最低ジャンプ力
-	Add_Jump_Boost = 150.0f;			//追加ジャンプ力
+	Add_Jump_Boost = 1500.0f;			//追加ジャンプ力
 
 	b_IsDash = false;				//ダッシュしているかどうか
 	Dash_HoldTime = 0.0f;			//ダッシュキーのホールド時間
@@ -312,8 +312,7 @@ void AMain_Character::Custom_Jump(float DeltaTime)
 			//	ジャンプ力の加算
 			FVector NewVelocity = GetCharacterMovement()->Velocity;		//移動力の取得
 			NewVelocity.Z += ExtraPower;			//Z方向へ1フレーム分の加速
-			GetCharacterMovement()->Velocity = NewVelocity;			//移動量の変更
-			GetCharacterMovement()->bApplyGravityWhileJumping = false;
+			GetCharacterMovement()->Velocity.Z += ExtraPower * DeltaTime;			//移動量の変更
 		}
 		else
 		{

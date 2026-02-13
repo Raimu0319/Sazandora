@@ -50,10 +50,6 @@ public:
 
 	void Dash(float DeltaTime);		
 
-	// 会話キー
-	UFUNCTION(Server,Reliable)
-	void On_Talk_Eventkey();
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Talk_NPC();
 
@@ -65,8 +61,21 @@ public:
 	void Set_NPC_Pointer(ANPC_Character* npc_charcter);		// NPCのポインタをセットする関数
 	void Set_Talk_Flg(bool talk_flg);						// Talkフラグのセット
 
+	// ジャンプ処理をサーバー側で実行するようにする関数
 	UFUNCTION(Server, Reliable)
 	void Server_JumpPressed();
+
+	// ジャンプ停止処理をサーバー側で実行するようにする関数
+	UFUNCTION(Server, Reliable)
+	void Server_JumpReleased();
+
+	// ジャンプ開始関数
+	UFUNCTION()
+	void ExecJumpStart();
+
+	// ジャンプ開始関数
+	UFUNCTION()
+	void ExecJumpStop();
 
 	//int team_number = 0;
 
@@ -104,9 +113,17 @@ private:
 	float Max_Dash_Speed;			//最大ダッシュ速度
 
 	UPROPERTY()
+	bool Is_LocalCan_Innteract = false;		//NPCが近くにいるかどうか
+
+	UPROPERTY()
 	bool Is_Talk;			//最大ダッシュ速度
 
 	ANPC_Character* CurrentInteractNPC = nullptr;
+
+	// Server(サーバーで実行)、Reliable(確実に呼び出す)
+	// サーバー側でNPCと近いかの判定
+	UFUNCTION(Server, Reliable)
+	void Server_SetInteractNPC(ANPC_Character* NPC, bool is_can_interact);
 
 protected:
 	//	スプリングアーム（カメラの追従位置を制御）

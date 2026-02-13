@@ -84,6 +84,8 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsLoaded)
 	bool is_loaded = false;
 
+
+
 	//UPROPERTY()
 	//bool is_clear = false;
 
@@ -91,5 +93,4 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_IsLoaded();
-
 };

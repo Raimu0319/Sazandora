@@ -33,6 +33,7 @@ AsazandoraGameMode::AsazandoraGameMode()
 	PlayerControllerClass = AMyPlayerController::StaticClass();
 }
 
+// プレイヤーがログインした際の処理
 void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -46,8 +47,9 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
+	// GameStateの取得
 	AGameStateBase* gs = GameState;
-	if (!gs)
+	if (!gs)			// nullptrチェック
 	{
 		return;
 	}

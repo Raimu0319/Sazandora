@@ -434,3 +434,32 @@ void AMyPlayerController::Refresh_UI()
 		UE_LOG(LogTemp, Warning, TEXT("Client_UpdateBuyList: HUDWidget_pointer is null"));
 	}
 }
+
+// HUDWidgetの画像表示、非表示処理
+void AMyPlayerController::A_Button_SetVisibility_Implementation(bool flg)
+{
+	// ヌルチェック
+	if (!HUDWidget_pointer)
+	{
+		return;
+	}
+
+	// ローカルコントローラーのUI更新だけ行う
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	// 値が同じなら変更しない
+	if (is_button_visible == flg)
+	{
+		return;
+	}
+
+	// ボタンの表示変更　trueなら表示　：　falseなら非表示
+	HUDWidget_pointer->SetVisible(flg);
+	is_button_visible = flg;
+	HUDWidget_pointer->RefreshUI();
+
+	//UE_LOG(LogTemp, Error, TEXT("Set Visible %d"), flg);
+}

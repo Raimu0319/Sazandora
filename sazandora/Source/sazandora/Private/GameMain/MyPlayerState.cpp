@@ -46,11 +46,6 @@ void AMyPlayerState::BeginPlay()
 // Playerの初期化
 void AMyPlayerState::My_State_Initialize()
 {
-	/*if (!HasAuthority())
-	{
-		return;
-	}*/
-
 	if (HasAuthority())
 	{
 		buylist_crear.SetNum(D_MAX_BUY_LISTSIZE);

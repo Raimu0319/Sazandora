@@ -50,7 +50,12 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_EndGame(bool is_clear);
 	
+	// UIの更新
 	void Refresh_UI();
+
+	// HUDWidgetの画像表示、非表示処理
+	UFUNCTION(Client, Reliable)
+	void A_Button_SetVisibility(bool flg);
 
 	// AControllerクラスまたはAPawnクラスでPlayerStateのポインタが
 	// クライアントにレプリケートされた時に呼び出されるコールバック関数
@@ -59,20 +64,26 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	// HUDWidget_classのクラスポインタ
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UHUDWidget> HUDWidget_class;
 
+	// UStartWaitWidgetのクラスポインタ
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UStartWaitWidget> StartWaitWidget_class;
 
+	// UEndWidgetのクラスポインタ
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class  UEndWidget> EndWidget_class;
 	
+	// 実際に生成されたウィジットのポインタ
 	UHUDWidget* HUDWidget_pointer = nullptr;
-
 	UStartWaitWidget* wait_widget = nullptr;
-
 	UEndWidget* end_widget = nullptr;
 	
 	virtual void OnPossess(APawn* InPawn) override;
+
+	// Aボタンの表示変更フラグ
+	UPROPERTY()
+	bool is_button_visible = false;
 };

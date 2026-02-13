@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../Public/GameMain/MyPlayerState.h"
+#include "../Public/GameMain/MyPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
@@ -31,7 +32,7 @@ AMain_Character::AMain_Character()
 	Jump_HoldTime = 0.0f;			//押し続けた時間
 	Max_Jump_HoldTime = 0.3f;		//最大押し続け時間(秒)
 	Min_Jump_Strength = 300.0f;		//最低ジャンプ力
-	Add_Jump_Boost = 50.0f;			//追加ジャンプ力
+	Add_Jump_Boost = 150.0f;			//追加ジャンプ力
 
 	b_IsDash = false;				//ダッシュしているかどうか
 	Dash_HoldTime = 0.0f;			//ダッシュキーのホールド時間
@@ -94,19 +95,7 @@ void AMain_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// PlayerStateの取得
-	//AMyPlayerState* MyPlayerState = GetPlayerState<AMyPlayerState>();
-
-	//MyPlayerState->Random_Item();
-
-	//// 数値をFStringに変換
-	//for (int32 i = 0; i < 3; i++)
-	//{
-	//	FString LogMessage = FString::Printf(TEXT("配列の要素: %d"), MyPlayerState->player_buy_list[i]);
-	//	UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
-	//}
-
-		// NPCの検索
+	// NPCの検索
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPC_Character::StaticClass(), FoundActors);
 
@@ -181,6 +170,7 @@ void AMain_Character::Tick(float DeltaTime)
 		}
 	}
 
+	// NPCとの距離計算
 	AMain_Character::CheckInteract();
 }
 
@@ -194,8 +184,8 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMain_Character::OnJumpReleased);
 
 	// ダッシュ入力
-	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AMain_Character::On_Dash_Pressed);
-	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AMain_Character::On_Dash_Released);
+	//PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AMain_Character::On_Dash_Pressed);
+	//PlayerInputComponent->BindAction("Dash", IE_Released, this, &AMain_Character::On_Dash_Released);
 
 	// 会話キー
 	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &AMain_Character::Try_Talk);
@@ -209,15 +199,38 @@ void AMain_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAxis("MouseY", this, &APawn::AddControllerPitchInput);
 }
 
-//ジャンプボタンが押されたら
+// ジャンプボタンが押された瞬間の処理
 void AMain_Character::OnJumpPressed()
 {
+	// サーバー以外が関数を呼んだ場合
 	if (!HasAuthority())
 	{
+		// サーバーで実行するようにする
 		Server_JumpPressed();
 		return;
 	}
 
+	// サーバー側が関数を呼んだ場合はそのまま実行
+	ExecJumpStart();
+}
+
+// サーバーでジャンプ開始関数を呼ぶ関数
+void AMain_Character::Server_JumpPressed_Implementation()
+{
+	// ジャンプ開始関数
+	ExecJumpStart();
+}
+
+// サーバーでジャンプ停止関数を呼ぶ関数
+void AMain_Character::Server_JumpReleased_Implementation()
+{
+	// ジャンプ停止関数
+	ExecJumpStop();
+}
+
+// ジャンプ開始関数
+void AMain_Character::ExecJumpStart()
+{
 	//	空中にいる場合はジャンプをしないようにする
 	if (GetCharacterMovement()->IsFalling())
 	{
@@ -235,51 +248,30 @@ void AMain_Character::OnJumpPressed()
 	// bXYOverride = XY成分（水平）をfalseで既存の速度に加算し、trueで既存の値を書き換える
 	// bZOverride = Z成分（垂直）を既存のZ速度で上書きする(trueの場合現在のZが消えて新しいZに書き変わる）
 	LaunchCharacter(FVector(0, 0, Min_Jump_Strength), false, true);
+	
+	/*Jump();
+	GetCharacterMovement()->Velocity.Z = Min_Jump_Strength;*/
 }
 
-void AMain_Character::Server_JumpPressed_Implementation()
+// ジャンプ停止関数
+void AMain_Character::ExecJumpStop()
 {
-	OnJumpPressed();
+	b_IsJump_ButtonHold = false;		//ボタンが離されたためfalseにする
 }
 
 //ジャンプボタンが離された時
 void  AMain_Character::OnJumpReleased()
 {
-	b_IsJump_ButtonHold = false;		//ボタンが離されたためfalseにする
-}
-
-// 前後移動処理
-void AMain_Character::MoveForward(float value)
-{
-	//	対応のキーが入力されていて、入力値が0.0fではないとき
-	if (Controller && value != 0.0f)
+	// サーバー以外が関数を呼んだ場合
+	if (!HasAuthority())
 	{
-		//	プレイヤーが操作しているカメラの向きを取得
-		//	Rotationはピッチ（上下）・ヨー（左右）・ロール（傾き）をもつ回転情報　例）カメラが右を剥いていた場合はRotation.Yawの角度は右向きになる
-		const FRotator Rotation = Controller->GetControlRotation();
-
-		//　水平方向の回転を抽出
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		//	現在の向きから前方向(X軸方向)のベクトルを算出することでカメラが今向いている方向がわかる
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		//	Direction(どの方向)に、value(どれだけ動くか)を指定して実行する
-		AddMovementInput(Direction, value);
+		// サーバーで実行するようにする
+		Server_JumpReleased();
+		return;
 	}
-}
 
-// 左右移動処理
-void AMain_Character::MoveRight(float value)
-{
-	if (Controller && value != 0.0f)
-	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction, value);
-	}
+	// サーバー側が関数を呼んだ場合はそのまま実行
+	ExecJumpStop();
 }
 
 // ジャンプ処理
@@ -319,14 +311,49 @@ void AMain_Character::Custom_Jump(float DeltaTime)
 
 			//	ジャンプ力の加算
 			FVector NewVelocity = GetCharacterMovement()->Velocity;		//移動力の取得
-			NewVelocity.Z += ExtraPower * DeltaTime * 60.0f;			//Z方向へ1フレーム分の加速
-			GetCharacterMovement()->Velocity = NewVelocity;				//移動量の変更
+			NewVelocity.Z += ExtraPower;			//Z方向へ1フレーム分の加速
+			GetCharacterMovement()->Velocity = NewVelocity;			//移動量の変更
+			GetCharacterMovement()->bApplyGravityWhileJumping = false;
 		}
 		else
 		{
 			// 最大時間を超えたらジャンプ終了
 			b_IsJump_ButtonHold = false;
 		}
+	}
+}
+
+// 前後移動処理
+void AMain_Character::MoveForward(float value)
+{
+	//	対応のキーが入力されていて、入力値が0.0fではないとき
+	if (Controller && value != 0.0f)
+	{
+		//	プレイヤーが操作しているカメラの向きを取得
+		//	Rotationはピッチ（上下）・ヨー（左右）・ロール（傾き）をもつ回転情報　例）カメラが右を剥いていた場合はRotation.Yawの角度は右向きになる
+		const FRotator Rotation = Controller->GetControlRotation();
+
+		//　水平方向の回転を抽出
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		//	現在の向きから前方向(X軸方向)のベクトルを算出することでカメラが今向いている方向がわかる
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		//	Direction(どの方向)に、value(どれだけ動くか)を指定して実行する
+		AddMovementInput(Direction, value);
+	}
+}
+
+// 左右移動処理
+void AMain_Character::MoveRight(float value)
+{
+	if (Controller && value != 0.0f)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Direction, value);
 	}
 }
 
@@ -344,6 +371,7 @@ void AMain_Character::On_Dash_Released()
 	b_IsDash = false;
 	Dash_Speed = 0.0f;
 }
+
 
 void AMain_Character::Server_StartDash_Implementation()
 {
@@ -405,23 +433,6 @@ bool AMain_Character::Server_Talk_NPC_Validate()
 	return true;
 }
 
-// 会話キー
-void AMain_Character::On_Talk_Eventkey_Implementation()
-{
-	//if (TargetNPC != nullptr)
-	//{
-	//	//	空中にいる場合はジャンプをしないようにする
-	//	if (GetCharacterMovement()->IsFalling())
-	//	{
-	//		//	空中にいる場合は処理を行わない
-	//		return;
-	//	}
-
-	//	// サーバー経由でトークイベントを開始する
-	//	Server_Talk_NPC();
-	//}
-}
-
 // サーバーで会話イベントを起動する
 void AMain_Character::Server_Talk_NPC_Implementation()
 {
@@ -438,9 +449,34 @@ void AMain_Character::Set_Talk_Flg(bool talk_flg)
 	this->Is_Talk = talk_flg;
 }
 
+void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, bool is_can_interact)
+{
+	// NPCのポインタをここで保存したりnullptrに変更する
+	CurrentInteractNPC = NPC;
+
+	// ログの標示
+	if (CurrentInteractNPC)
+	{
+		UE_LOG(LogTemp, Log, TEXT("CurrentInteractNPC is true"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("CurrentInteractNPC is false"));
+	}
+
+	// AMyPlayerControllerの取得に成功したらAボタンの表示を変更する
+	if (AMyPlayerController* pc = Cast<AMyPlayerController>(GetController()))
+	{
+		pc->A_Button_SetVisibility(is_can_interact);
+	}
+}
+
 // ライントレースで会話可能範囲にいるかどうかの判定
 void AMain_Character::CheckInteract()
 {
+	// ライントレースの範囲にNPCがいるかどうか
+	bool Is_hit_npc = false;
+
 	int32 ViewportX, ViewportY;		// 画面（ビューポート）の横・縦サイズ（ピクセル）
 	FVector WorldPos;				// 線の始点
 	FVector WorldDir;				// 選の向き（長さは１）
@@ -477,20 +513,42 @@ void AMain_Character::CheckInteract()
 		Params
 	))
 	{
-		ANPC_Character* hit_npc = Cast<ANPC_Character>(hit.GetActor());
+		// ヒットしているオブジェクトがNPCならポインタを取得
+		ANPC_Character* hit_npc_ptr = Cast<ANPC_Character>(hit.GetActor());
 
 		// npcが検出されたら
-		if (hit_npc)
+		if (hit_npc_ptr)
 		{
 			// ポインタをセット
-			CurrentInteractNPC = hit_npc;
-			UE_LOG(LogTemp, Log, TEXT("find is npc "))
-			return;
+			/*CurrentInteractNPC = hit_npc;
+			/*UE_LOG(LogTemp, Log, TEXT("find is npc "))
+
+			// MyPlayerStateの入手
+			AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
+			UE_LOG(LogTemp, Log, TEXT("AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();"));
+
+			// NULLチェック
+			if (!ps)
+			{
+				UE_LOG(LogTemp, Log, TEXT("ps->Set_Is_button_visible(true) is not play"));
+				return;
+			}
+
+			// Aボタンの表示変更
+			ps->Set_Is_button_visible(true);
+			UE_LOG(LogTemp, Log, TEXT("ps->Set_Is_button_visible(true)"));*/
+
+			Is_hit_npc = true;
+		}
+		
+		// 差分があった場合のみRPCを実行
+		if(Is_LocalCan_Innteract != Is_hit_npc)
+		{
+			Is_LocalCan_Innteract = Is_hit_npc;
+			// サーバー側でCurrentInteractNPCやボタンの表示を変更するように通知する
+			Server_SetInteractNPC_Implementation(hit_npc_ptr,Is_hit_npc);
 		}
 	}
-	
-	// なければnullにする
-	CurrentInteractNPC = nullptr;
 }
 
 // 会話開始リクエスト
@@ -580,30 +638,30 @@ ANPC_Character* AMain_Character::FindNearestNPC_FromList()
 	}
 
 	// 一番近いnpcのポインタを返す
-	if (Result)
-	{
-		// デバッグするため一番近いNPCの取得とそのNPCの販売アイテムの表示
-		switch (Result->Get_ItemType())
-		{
-		case E_ITEM_TYPE::E_NONE:
-			UE_LOG(LogTemp, Error, TEXT("Nearby NPC not ItemType"));
-			break;
-		case E_ITEM_TYPE::E_JUICE:
-			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_JUICE"));
-			break;
-		case E_ITEM_TYPE::E_HAMBRGER:
-			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_HAMBRGER"));
-			break;
-		case E_ITEM_TYPE::E_DONUT:
-			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_DONUT"));
-			break;
-		case E_ITEM_TYPE::E_POPCORN:
-			UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_POPCORN"));
-			break;
-		default:
-			break;
-		}
-	}
+	//if (Result)
+	//{
+	//	// デバッグするため一番近いNPCの取得とそのNPCの販売アイテムの表示
+	//	switch (Result->Get_ItemType())
+	//	{
+	//	case E_ITEM_TYPE::E_NONE:
+	//		UE_LOG(LogTemp, Error, TEXT("Nearby NPC not ItemType"));
+	//		break;
+	//	case E_ITEM_TYPE::E_JUICE:
+	//		UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_JUICE"));
+	//		break;
+	//	case E_ITEM_TYPE::E_HAMBRGER:
+	//		UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_HAMBRGER"));
+	//		break;
+	//	case E_ITEM_TYPE::E_DONUT:
+	//		UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_DONUT"));
+	//		break;
+	//	case E_ITEM_TYPE::E_POPCORN:
+	//		UE_LOG(LogTemp, Log, TEXT("Nearby NPC : E_POPCORN"));
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//}
 
 	return Result;
 }

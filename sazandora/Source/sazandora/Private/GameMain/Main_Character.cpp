@@ -61,12 +61,21 @@ AMain_Character::AMain_Character()
 
 	// skeletal Mesh(キャラの見た目)を読み込む
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMat(TEXT("/Game/ThirdPerson/Material/M_PostProcess_Outline.M_PostProcess_Outline"));
 	
 	// Meshが正しく読み込めているかどうか
 	// Suceeded()がだ正しくメッシュを作成できているかどうかを確認する返り値がbool型の関数
 	if (MeshObj.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(MeshObj.Object);
+		GetMesh()->SetRenderCustomDepth(false);
+		GetMesh()->SetRenderCustomDepth(true);
+		GetMesh()->SetCustomDepthStencilValue(0);	// 会話用ID	
+
+		if (OverlayMat.Succeeded())
+		{
+			OverlayMaterial = OverlayMat.Object;
+		}
 	}
 
 	// アニメーションBPを設定（任意）
@@ -107,6 +116,11 @@ void AMain_Character::BeginPlay()
 		}
 	}
 
+	if (OverlayMaterial)
+	{
+		GetMesh()->SetOverlayMaterial(OverlayMaterial);
+	}
+
 	// タイムハンドルの作成
 	FTimerHandle TimerHandle;
 
@@ -128,9 +142,6 @@ void AMain_Character::Tick(float DeltaTime)
 
 		// ジャンプ処理
 		AMain_Character::Custom_Jump(DeltaTime);
-
-		/*UE_LOG(LogTemp, Warning, TEXT("SERVER Character Pos: %s"),
-			*GetActorLocation().ToString());*/
 	}
 
 	// MyPlayerStateの入手
@@ -152,6 +163,8 @@ void AMain_Character::Tick(float DeltaTime)
 			FRotator Rot = Dir.Rotation();											// 角度の計算
 
 			GuideArrow->SetWorldRotation(Rot);			// 向きの変更
+
+			MyGoalPoint->ChangeOutlineVisibility(true);
 		}
 	}
 	else		// 終わらせていない場合
@@ -453,7 +466,7 @@ void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, 
 	// NPCのポインタをここで保存したりnullptrに変更する
 	CurrentInteractNPC = NPC;
 
-	// ログの標示
+	// ログの表示
 	if (CurrentInteractNPC)
 	{
 		UE_LOG(LogTemp, Log, TEXT("CurrentInteractNPC is true"));
@@ -634,6 +647,17 @@ ANPC_Character* AMain_Character::FindNearestNPC_FromList()
 				}
 			}
 		}
+	}
+
+	// アウトライン表示変更
+	if (Result)
+	{
+		Result->ChangeOutlineVisibility(true);
+	}
+
+	if (NearestNPC && NearestNPC != Result)	// 前回近かったNPCのアウトライン表示を消す
+	{
+		NearestNPC->ChangeOutlineVisibility(false);
 	}
 
 	// 一番近いnpcのポインタを返す

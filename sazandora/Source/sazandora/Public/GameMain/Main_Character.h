@@ -134,6 +134,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera");
 	class UCameraComponent* CameraComp;
 
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial;
+
+
 	UFUNCTION()
 	void CheckInteract();
 

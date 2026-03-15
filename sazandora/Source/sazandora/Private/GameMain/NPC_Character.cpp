@@ -63,6 +63,17 @@ void ANPC_Character::BeginPlay()
 	Super::BeginPlay();
 }
 
+void ANPC_Character::ChangeOutlineVisibility(bool flg)
+{
+	// 値に変更があった場合のみ変更
+	if (GetMesh() && is_outline != flg)
+	{
+		GetMesh()->SetRenderCustomDepth(flg);
+		is_outline = flg;
+		UE_LOG(LogTemp, Log, TEXT("Outline : %s"), flg ? TEXT("true") : TEXT("false"));
+	}
+}
+
 // Called every frame
 void ANPC_Character::Tick(float DeltaTime)
 {
@@ -91,6 +102,7 @@ void ANPC_Character::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AAc
 	}
 }
 
+// 会話範囲にいたら
 void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -110,21 +122,7 @@ void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent
 		/*player->Set_NPC_Pointer(nullptr);
 		player->Set_Talk_Flg(this->Is_Talk_Flg);*/
 
-		GetMesh()->SetRenderCustomDepth(false);
-		UE_LOG(LogTemp, Log, TEXT("Outline is false"));
-	}
-}
-
-void ANPC_Character::SetOutline(AMain_Character* player)
-{
-	if (GetMesh() && player != nullptr)
-	{
-		GetMesh()->SetRenderCustomDepth(true);
-		UE_LOG(LogTemp, Log, TEXT("Outline is true"));
-	}
-	else
-	{
-		GetMesh()->SetRenderCustomDepth(false);
+		//GetMesh()->SetRenderCustomDepth(false);
 		UE_LOG(LogTemp, Log, TEXT("Outline is false"));
 	}
 }

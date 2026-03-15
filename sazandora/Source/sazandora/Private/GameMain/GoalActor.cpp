@@ -20,6 +20,27 @@ AGoalActor::AGoalActor()
 	GoalBox->SetupAttachment(RootComponent);
 	GoalBox->SetIsReplicated(true);
 
+	GoalMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GoalMesh"));
+	GoalMesh->SetupAttachment(RootComponent);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshObj(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMat(TEXT("/Game/ThirdPerson/Material/M_PostProcess_Outline.M_PostProcess_Outline"));
+	
+	if (MeshObj.Succeeded())
+	{
+		GoalMesh->SetStaticMesh(MeshObj.Object);
+	}
+
+	GoalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);		// コリジョン無効
+	GoalMesh->SetRenderInMainPass(false);								// 描画しない
+	GoalMesh->SetRenderCustomDepth(is_outline);								// CustomDpthに描画
+	GoalMesh->SetCustomDepthStencilValue(1);							// Stencil値
+
+	if (OverlayMat.Succeeded())
+	{
+		OverlayMaterial = OverlayMat.Object;
+	}
+
 	// サイズや可視化の設定
 	GoalBox->SetBoxExtent(FVector(150.0f, 150.0f, 100.0f));
 	GoalBox->SetHiddenInGame(true);
@@ -50,11 +71,27 @@ void AGoalActor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("GoalBox exists. Activating..."));
 		GoalBox->Activate(true);
 	}
+
+	if (OverlayMaterial)
+	{
+		GoalMesh->SetOverlayMaterial(OverlayMaterial);
+	}
 }
 
 // Called every frame
 void AGoalActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
+// アウトラインの表示変更処理
+void AGoalActor::ChangeOutlineVisibility(bool flg)
+{
+	// 値に変更があった場合のみ変更
+	if (GoalMesh && is_outline != flg)
+	{
+		GoalMesh->SetRenderCustomDepth(flg);
+		is_outline = flg;
+		UE_LOG(LogTemp, Log, TEXT("Outline : %s"), flg ? TEXT("true") : TEXT("false"));
+	}
 }

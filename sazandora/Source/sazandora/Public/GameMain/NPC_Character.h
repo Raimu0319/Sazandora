@@ -26,6 +26,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "NPC",Replicated)
 	bool Is_Talk_Flg;
 
+	// アウトラインを表示変更フラグ
+	UPROPERTY()
+	bool is_outline = false;
+
 	// 販売するアイテム
 	E_ITEM_TYPE e_mytype;
 
@@ -50,8 +54,9 @@ public:
 	virtual void OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	// アウトライン表示変更処理
 	UFUNCTION()
-	void  SetOutline(AMain_Character* player);
+	void ChangeOutlineVisibility(bool flg);
 
 	// 会話イベント
 	UFUNCTION()

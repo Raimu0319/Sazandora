@@ -411,6 +411,7 @@ void AMyPlayerController::Client_EndGame_Implementation(bool is_clear)
 		}, 0.3f, false);
 }
 
+// リザルトウィンドウの表示
 void AMyPlayerController::Set_EndWidget_Text(bool flg)
 {
 	end_widget->Set_ClearFlg(flg);

@@ -70,7 +70,7 @@ AMain_Character::AMain_Character()
 		GetMesh()->SetSkeletalMesh(MeshObj.Object);
 		GetMesh()->SetRenderCustomDepth(false);
 		GetMesh()->SetRenderCustomDepth(true);
-		GetMesh()->SetCustomDepthStencilValue(0);	// 会話用ID	
+		GetMesh()->SetCustomDepthStencilValue(0);
 
 		if (OverlayMat.Succeeded())
 		{
@@ -94,7 +94,7 @@ AMain_Character::AMain_Character()
 
 	GuideArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("GuideArrow"));
 	GuideArrow->SetupAttachment(RootComponent);
-	GuideArrow->SetRelativeLocation(FVector(0, 0, 100)); // 頭の上
+	GuideArrow->SetRelativeLocation(FVector(0, 0, 100));		// 頭の上
 	GuideArrow->SetHiddenInGame(false);
 	GuideArrow->SetVisibility(true);
 }
@@ -116,9 +116,12 @@ void AMain_Character::BeginPlay()
 		}
 	}
 
-	if (OverlayMaterial)
+	if (IsLocallyControlled())
 	{
-		GetMesh()->SetOverlayMaterial(OverlayMaterial);
+		if (OverlayMaterial)
+		{
+			GetMesh()->SetOverlayMaterial(OverlayMaterial);
+		}
 	}
 
 	// タイムハンドルの作成
@@ -164,7 +167,12 @@ void AMain_Character::Tick(float DeltaTime)
 
 			GuideArrow->SetWorldRotation(Rot);			// 向きの変更
 
-			MyGoalPoint->ChangeOutlineVisibility(true);
+			if (IsLocallyControlled())
+			{
+				MyGoalPoint->ChangeOutlineVisibility(true);
+
+				NearestNPC->ChangeOutlineVisibility(false);
+			}
 		}
 	}
 	else		// 終わらせていない場合
@@ -463,6 +471,15 @@ void AMain_Character::Set_Talk_Flg(bool talk_flg)
 
 void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, bool is_can_interact)
 {
+	// nullptrに書き換えられる前にアウトラインの色を変更する
+	if (!NPC)
+	{
+		if (CurrentInteractNPC)
+		{
+			CurrentInteractNPC->Is_TalkCheck(is_can_interact);
+		}
+	}
+
 	// NPCのポインタをここで保存したりnullptrに変更する
 	CurrentInteractNPC = NPC;
 
@@ -480,6 +497,11 @@ void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, 
 	if (AMyPlayerController* pc = Cast<AMyPlayerController>(GetController()))
 	{
 		pc->A_Button_SetVisibility(is_can_interact);
+	}
+
+	if (CurrentInteractNPC)
+	{
+		CurrentInteractNPC->Is_TalkCheck(is_can_interact);
 	}
 }
 
@@ -649,15 +671,18 @@ ANPC_Character* AMain_Character::FindNearestNPC_FromList()
 		}
 	}
 
-	// アウトライン表示変更
-	if (Result)
+	if (IsLocallyControlled())
 	{
-		Result->ChangeOutlineVisibility(true);
-	}
+		// アウトライン表示変更
+		if (Result)
+		{
+			Result->ChangeOutlineVisibility(true);
+		}
 
-	if (NearestNPC && NearestNPC != Result)	// 前回近かったNPCのアウトライン表示を消す
-	{
-		NearestNPC->ChangeOutlineVisibility(false);
+		if (NearestNPC && NearestNPC != Result)	// 前回近かったNPCのアウトライン表示を消す
+		{
+			NearestNPC->ChangeOutlineVisibility(false);
+		}
 	}
 
 	// 一番近いnpcのポインタを返す

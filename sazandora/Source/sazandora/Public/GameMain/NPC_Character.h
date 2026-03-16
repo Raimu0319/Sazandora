@@ -26,6 +26,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "NPC",Replicated)
 	bool Is_Talk_Flg;
 
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial;
+
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial_Is_Talk;
+
 	// アウトラインを表示変更フラグ
 	UPROPERTY()
 	bool is_outline = false;
@@ -57,6 +65,10 @@ public:
 	// アウトライン表示変更処理
 	UFUNCTION()
 	void ChangeOutlineVisibility(bool flg);
+
+	UFUNCTION()
+	// アウトラインの色変更処理		flg : false = red, true = green
+	void Is_TalkCheck(bool flg);
 
 	// 会話イベント
 	UFUNCTION()

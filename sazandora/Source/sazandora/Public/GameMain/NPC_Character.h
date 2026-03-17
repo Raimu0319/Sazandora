@@ -66,9 +66,9 @@ public:
 	UFUNCTION()
 	void ChangeOutlineVisibility(bool flg);
 
-	UFUNCTION()
+	UFUNCTION(Client, Reliable)
 	// アウトラインの色変更処理		flg : false = red, true = green
-	void Is_TalkCheck(bool flg);
+	void Client_Set_TalkCheck(bool flg);
 
 	// 会話イベント
 	UFUNCTION()

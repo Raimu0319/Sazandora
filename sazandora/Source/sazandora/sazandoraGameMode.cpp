@@ -255,18 +255,6 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 			{
 				start_flg = true;
 			}
-
-			/*if (bAllReady && ready_player >= 2)
-			{
-				UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
-				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-				{
-					if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
-					{
-							PC->Client_StartGame();
-					}
-				}
-			}*/
 		},
 		0.1f,  // 0.1秒遅らせる
 		false
@@ -289,51 +277,11 @@ void AsazandoraGameMode::Start_Game()
 			PC->Client_StartGame();
 		}
 	}
-
-	//Multicast_StartGame();
 }
 
-// 全クライアントでゲームを開始する関数
-//void AsazandoraGameMode::Multicast_StartGame_Implementation()
-//{
-//	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
-//	{
-//		AMyPlayerController* my_controller = Cast<AMyPlayerController>(it->Get());
-//		if (!my_controller)
-//		{
-//			continue;
-//		}
-//
-//		AMyPlayerState* player_state = my_controller->GetPlayerState<AMyPlayerState>();
-//		if (!player_state)
-//		{
-//			continue;
-//		}
-//
-//		player_state->My_State_Initialize();
-//
-//		if (HasAuthority())
-//		{
-//			player_state->My_State_Initialize();
-//		}
-//
-//		if (my_controller->IsLocalController())
-//		{
-//			// ホスト（ListenServer）含め、実際に画面を持つ人だけ
-//			my_controller->Create_HUDWidget();
-//		}
-//	}
-//}
-
+// Playerスポーン処理
 AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, const FString& IncomingName)
 {
-	// 参照したプレイヤーがサーバーではなければ
-	//if (player->HasAuthority())
-	//{
-	//	NextPlayerIndex++;			// 次のプレイヤーのためにインクリメント
-	//	UE_LOG(LogTemp, Warning, TEXT("NextPlayerIndex : %d") ,NextPlayerIndex);
-	//}
-
 	// 次にスポーンするプレイヤーのインデックスを格納
 	const int32 CurrentPlayerIndex = NextPlayerIndex;
 
@@ -371,13 +319,6 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 			*StartPoint->GetActorLocation().ToString(),
 			*TargetTag.ToString(),
 			*AllTags);
-
-		// StartPointが探しているタグ(TargetTag)と同じなら
-		//if (StartPoint->GetActorTags().HasTag(TargetTag))
-		//{
-		//	// StartPointを返り値として渡す
-		//	return StartPoint;
-		//}
 	}
 
 	// なかった場合はログを出力

@@ -86,6 +86,7 @@ void ANPC_Character::BeginPlay()
 	}
 }
 
+// アウトラインの表示変更処理
 void ANPC_Character::ChangeOutlineVisibility(bool flg)
 {
 	// 値に変更があった場合のみ変更
@@ -97,17 +98,13 @@ void ANPC_Character::ChangeOutlineVisibility(bool flg)
 	}
 }
 
-// Playerとの会話可能な状態ならアウトラインの色を変更する
-void ANPC_Character::Is_TalkCheck(bool flg)
+// Playerがアイテムを購入できるかどうかを検知
+void ANPC_Character::Client_Set_TalkCheck_Implementation(bool flg)
 {
-
-	//if (!IsLocallyControlled())
-	//{
-	//	return;
-	//}
-
+	// flg : PlayerがNPCからアイテムを購入できる状態かどうか
 	if (flg)
 	{
+		// アウトラインの色を緑色に変更
 		if (OverlayMaterial_Is_Talk)
 		{
 			GetMesh()->SetCustomDepthStencilValue(GREEN_OUTLINE);
@@ -120,6 +117,7 @@ void ANPC_Character::Is_TalkCheck(bool flg)
 	}
 	else
 	{
+		// アウトラインの色を赤色に変更
 		if (OverlayMaterial)
 		{
 			GetMesh()->SetCustomDepthStencilValue(RED_OUTLINE);

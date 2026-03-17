@@ -32,7 +32,7 @@ AMain_Character::AMain_Character()
 	Jump_HoldTime = 0.0f;			//押し続けた時間
 	Max_Jump_HoldTime = 0.3f;		//最大押し続け時間(秒)
 	Min_Jump_Strength = 300.0f;		//最低ジャンプ力
-	Add_Jump_Boost = 1500.0f;			//追加ジャンプ力
+	Add_Jump_Boost = 1500.0f;		//追加ジャンプ力
 
 	b_IsDash = false;				//ダッシュしているかどうか
 	Dash_HoldTime = 0.0f;			//ダッシュキーのホールド時間
@@ -108,6 +108,7 @@ void AMain_Character::BeginPlay()
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPC_Character::StaticClass(), FoundActors);
 
+	// マップに配置されているNPCを取得
 	for (AActor* Actor : FoundActors)
 	{
 		if (ANPC_Character* NPC = Cast<ANPC_Character>(Actor))
@@ -469,6 +470,7 @@ void AMain_Character::Set_Talk_Flg(bool talk_flg)
 	this->Is_Talk = talk_flg;
 }
 
+// 最寄りのNPCのポインタを取得
 void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, bool is_can_interact)
 {
 	// nullptrに書き換えられる前にアウトラインの色を変更する
@@ -476,7 +478,7 @@ void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, 
 	{
 		if (CurrentInteractNPC)
 		{
-			CurrentInteractNPC->Is_TalkCheck(is_can_interact);
+			CurrentInteractNPC->Client_Set_TalkCheck(is_can_interact);
 		}
 	}
 
@@ -499,9 +501,10 @@ void AMain_Character::Server_SetInteractNPC_Implementation(ANPC_Character* NPC, 
 		pc->A_Button_SetVisibility(is_can_interact);
 	}
 
+	// アウトラインの色変更
 	if (CurrentInteractNPC)
 	{
-		CurrentInteractNPC->Is_TalkCheck(is_can_interact);
+		CurrentInteractNPC->Client_Set_TalkCheck(is_can_interact);
 	}
 }
 
@@ -553,25 +556,6 @@ void AMain_Character::CheckInteract()
 		// npcが検出されたら
 		if (hit_npc_ptr)
 		{
-			// ポインタをセット
-			/*CurrentInteractNPC = hit_npc;
-			/*UE_LOG(LogTemp, Log, TEXT("find is npc "))
-
-			// MyPlayerStateの入手
-			AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();
-			UE_LOG(LogTemp, Log, TEXT("AMyPlayerState* ps = GetPlayerState<AMyPlayerState>();"));
-
-			// NULLチェック
-			if (!ps)
-			{
-				UE_LOG(LogTemp, Log, TEXT("ps->Set_Is_button_visible(true) is not play"));
-				return;
-			}
-
-			// Aボタンの表示変更
-			ps->Set_Is_button_visible(true);
-			UE_LOG(LogTemp, Log, TEXT("ps->Set_Is_button_visible(true)"));*/
-
 			Is_hit_npc = true;
 		}
 		

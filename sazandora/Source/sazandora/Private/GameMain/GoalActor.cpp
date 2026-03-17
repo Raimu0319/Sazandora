@@ -34,7 +34,7 @@ AGoalActor::AGoalActor()
 	GoalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);		// コリジョン無効
 	GoalMesh->SetRenderInMainPass(false);								// 描画しない
 	GoalMesh->SetRenderCustomDepth(is_outline);								// CustomDpthに描画
-	GoalMesh->SetCustomDepthStencilValue(1);							// Stencil値
+	GoalMesh->SetCustomDepthStencilValue(2);							// Stencil値
 
 	if (OverlayMat.Succeeded())
 	{

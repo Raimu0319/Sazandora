@@ -84,11 +84,13 @@ void AsazandoraGameMode::PostLogin(APlayerController* NewPlayer)
 	//RegisterServerToAPI();
 }
 
+// 一度だけ実行される処理
 void AsazandoraGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
 	TArray<AActor*> starts;
+	// ワールドに配置されているスタートクラスのオブジェクトを取得する
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), starts);
 
 	for (int32 i = 0; i < starts.Num(); i++)
@@ -100,11 +102,13 @@ void AsazandoraGameMode::BeginPlay()
 			continue;
 		}
 
+		// タグの生成
 		FString TagString = FString::Printf(TEXT("StartPoint_%d"), i);
 		FName NewTag(*TagString);
 
 		/*start_point->Tags.Add(NewTag);*/
 
+		// タグが付いていなければタグをつける
 		if (!start_point->Tags.Contains(NewTag))
 		{
 			start_point->Tags.Add(NewTag);
@@ -122,6 +126,7 @@ void AsazandoraGameMode::BeginPlay()
 	}
 
 	TArray<AActor*> goal;
+	// ワールドに配置されているゴールオブジェクトの取得
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGoalActor::StaticClass(), goal);
 
 	for (int32 j = 0; j < goal.Num(); j++)
@@ -133,9 +138,11 @@ void AsazandoraGameMode::BeginPlay()
 			continue;
 		}
 
+		// タグの作成
 		FString TagString = FString::Printf(TEXT("GoalPoint%d"), j);
 		FName NewTag(TagString);
 
+		// タグの追加
 		goal_point->Tags.Add(NewTag);
 
 		UE_LOG(LogTemp, Warning, TEXT("Assigned Tag %s to %s"), *TagString, *goal_point->GetName());
@@ -164,10 +171,13 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 
 		UE_LOG(LogTemp, Log, TEXT("プレイヤーがゴールしました。試合終了！"));
 
+		// プレイヤーコントローラーの取得をプレイヤーの人数分繰り返す
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
+			// プレイヤーコントローラーからAMyPlayerControllerを取得する
 			if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
 			{
+				// PlayerStaterを取得
 				AMyPlayerState* Target_player = PC->GetPlayerState<AMyPlayerState>();
 
 				if (!IsValid(Target_player))
@@ -179,6 +189,7 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 				// 勝者判定
 				const bool Is_Winner = (Target_player == p);
 
+				// ログ出力
 				if (Is_Winner)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Is_Winner is true"));
@@ -188,6 +199,7 @@ void AsazandoraGameMode::ClearCheck(AMyPlayerState* p)
 					UE_LOG(LogTemp, Warning, TEXT("Is_Winner is false"));
 				}
 
+				// クライアントそれぞれに
 				PC->Client_EndGame(Is_Winner);
 			}
 		}
@@ -207,7 +219,7 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 	// 1フレーム後にチェック（レプリケーションが追いつく）
 	FTimerHandle TimerHandle;
 
-	// 
+	// タイムハンドルの作成
 	GetWorldTimerManager().SetTimer(
 		TimerHandle,
 		[this]()
@@ -243,18 +255,6 @@ void AsazandoraGameMode::CheckAllPlayersLoaded()
 			{
 				start_flg = true;
 			}
-
-			/*if (bAllReady && ready_player >= 2)
-			{
-				UE_LOG(LogTemp, Log, TEXT("全プレイヤーのロード完了。試合開始！"));
-				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-				{
-					if (AMyPlayerController* PC = Cast<AMyPlayerController>(It->Get()))
-					{
-							PC->Client_StartGame();
-					}
-				}
-			}*/
 		},
 		0.1f,  // 0.1秒遅らせる
 		false
@@ -277,51 +277,11 @@ void AsazandoraGameMode::Start_Game()
 			PC->Client_StartGame();
 		}
 	}
-
-	//Multicast_StartGame();
 }
 
-// 全クライアントでゲームを開始する関数
-//void AsazandoraGameMode::Multicast_StartGame_Implementation()
-//{
-//	for (FConstPlayerControllerIterator it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
-//	{
-//		AMyPlayerController* my_controller = Cast<AMyPlayerController>(it->Get());
-//		if (!my_controller)
-//		{
-//			continue;
-//		}
-//
-//		AMyPlayerState* player_state = my_controller->GetPlayerState<AMyPlayerState>();
-//		if (!player_state)
-//		{
-//			continue;
-//		}
-//
-//		player_state->My_State_Initialize();
-//
-//		if (HasAuthority())
-//		{
-//			player_state->My_State_Initialize();
-//		}
-//
-//		if (my_controller->IsLocalController())
-//		{
-//			// ホスト（ListenServer）含め、実際に画面を持つ人だけ
-//			my_controller->Create_HUDWidget();
-//		}
-//	}
-//}
-
+// Playerスポーン処理
 AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, const FString& IncomingName)
 {
-	// 参照したプレイヤーがサーバーではなければ
-	//if (player->HasAuthority())
-	//{
-	//	NextPlayerIndex++;			// 次のプレイヤーのためにインクリメント
-	//	UE_LOG(LogTemp, Warning, TEXT("NextPlayerIndex : %d") ,NextPlayerIndex);
-	//}
-
 	// 次にスポーンするプレイヤーのインデックスを格納
 	const int32 CurrentPlayerIndex = NextPlayerIndex;
 
@@ -359,13 +319,6 @@ AActor* AsazandoraGameMode::FindPlayerStart_Implementation(AController* player, 
 			*StartPoint->GetActorLocation().ToString(),
 			*TargetTag.ToString(),
 			*AllTags);
-
-		// StartPointが探しているタグ(TargetTag)と同じなら
-		//if (StartPoint->GetActorTags().HasTag(TargetTag))
-		//{
-		//	// StartPointを返り値として渡す
-		//	return StartPoint;
-		//}
 	}
 
 	// なかった場合はログを出力

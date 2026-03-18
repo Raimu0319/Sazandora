@@ -26,6 +26,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "NPC",Replicated)
 	bool Is_Talk_Flg;
 
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial;
+
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial_Is_Talk;
+
+	// アウトラインを表示変更フラグ
+	UPROPERTY()
+	bool is_outline = false;
+
 	// 販売するアイテム
 	E_ITEM_TYPE e_mytype;
 
@@ -50,8 +62,13 @@ public:
 	virtual void OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	// アウトライン表示変更処理
 	UFUNCTION()
-	void  SetOutline(AMain_Character* player);
+	void ChangeOutlineVisibility(bool flg);
+
+	UFUNCTION(Client, Reliable)
+	// アウトラインの色変更処理		flg : false = red, true = green
+	void Client_Set_TalkCheck(bool flg);
 
 	// 会話イベント
 	UFUNCTION()

@@ -23,8 +23,22 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UGoalBoxComponent* GoalBox;
 
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* GoalMesh;
+
+	// オーバーレイマテリアルの保存
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UMaterialInterface* OverlayMaterial;
+
+	UPROPERTY()
+	bool is_outline = false;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// アウトラインの表示変更処理
+	UFUNCTION()
+	void ChangeOutlineVisibility(bool flg);
 
 };

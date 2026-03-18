@@ -6,6 +6,9 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerController.h"
 
+#define RED_OUTLINE		(1)
+#define GREEN_OUTLINE		(2)
+
 // Sets default values
 ANPC_Character::ANPC_Character()
 {
@@ -47,13 +50,25 @@ ANPC_Character::ANPC_Character()
 
 	// meshをセット
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshObj(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMat_Red(TEXT("/Game/ThirdPerson/Material/M_PostProcess_Outline.M_PostProcess_Outline"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> OverlayMat_Green(TEXT("/Game/ThirdPerson/Material/M_PostProcess_Outline_Green.M_PostProcess_Outline_Green"));
+
 	if (MeshObj.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(MeshObj.Object);						//meshの設定
 		GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));	//座標の設定
 		GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));	//回転の設定
 		GetMesh()->SetRenderCustomDepth(false);
-		GetMesh()->SetCustomDepthStencilValue(1);	// 会話用ID	
+		GetMesh()->SetCustomDepthStencilValue(RED_OUTLINE);
+
+		if (OverlayMat_Red.Succeeded())
+		{
+			OverlayMaterial = OverlayMat_Red.Object;
+		}
+		if (OverlayMat_Green.Succeeded())
+		{
+			OverlayMaterial_Is_Talk = OverlayMat_Green.Object;
+		}
 	}
 }
 
@@ -61,6 +76,60 @@ ANPC_Character::ANPC_Character()
 void ANPC_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (IsLocallyControlled())
+	{
+		if (OverlayMaterial)
+		{
+			GetMesh()->SetOverlayMaterial(OverlayMaterial);
+		}
+	}
+}
+
+// アウトラインの表示変更処理
+void ANPC_Character::ChangeOutlineVisibility(bool flg)
+{
+	// 値に変更があった場合のみ変更
+	if (GetMesh() && is_outline != flg)
+	{
+		GetMesh()->SetRenderCustomDepth(flg);
+		is_outline = flg;
+		UE_LOG(LogTemp, Log, TEXT("Outline : %s"), flg ? TEXT("true") : TEXT("false"));
+	}
+}
+
+// Playerがアイテムを購入できるかどうかを検知
+void ANPC_Character::Client_Set_TalkCheck_Implementation(bool flg)
+{
+	// flg : PlayerがNPCからアイテムを購入できる状態かどうか
+	if (flg)
+	{
+		// アウトラインの色を緑色に変更
+		if (OverlayMaterial_Is_Talk)
+		{
+			GetMesh()->SetCustomDepthStencilValue(GREEN_OUTLINE);
+			UE_LOG(LogTemp, Log, TEXT("SetOverlayMaterial(GREEN_OUTLINE) is Success"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("SetOverlayMaterial(GREEN_OUTLINE) is Failed..."));
+		}
+	}
+	else
+	{
+		// アウトラインの色を赤色に変更
+		if (OverlayMaterial)
+		{
+			GetMesh()->SetCustomDepthStencilValue(RED_OUTLINE);
+			UE_LOG(LogTemp, Log, TEXT("SetOverlayMaterial(RED_OUTLINE) is Success"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("SetOverlayMaterial(RED_OUTLINE) is Failed..."));
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Is_TalkCheck : %s"), flg ? TEXT("true") : TEXT("false"));
 }
 
 // Called every frame
@@ -73,32 +142,18 @@ void ANPC_Character::Tick(float DeltaTime)
 void ANPC_Character::OnPlayerEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComo, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//if (!HasAuthority())
-	//{
-	//	return;
-	//}
-
 	// Playerが会話範囲に入ったかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
 	if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
 	{
 		Is_Talk_Flg = true;
-
-	/*	player->Set_NPC_Pointer(this);
-		player->Set_Talk_Flg(this->Is_Talk_Flg);*/
-
-		GetMesh()->SetRenderCustomDepth(true);
 		UE_LOG(LogTemp, Log, TEXT("Outline is true"));
 	}
 }
 
+// 会話範囲にいたら
 void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	//if (!HasAuthority())
-	//{
-	//	return;
-	//}
-
 	// playerが会話範囲から出たかどうか(OtherActerがAMain_Characterクラスと同じか調べてる）
 	if (AMain_Character* player = Cast<AMain_Character>(OtherActor))
 	{
@@ -106,25 +161,6 @@ void ANPC_Character::OnPlayerLeaveRange(UPrimitiveComponent* OverlappedComponent
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Player is out"));
 
 		Is_Talk_Flg = false;
-
-		/*player->Set_NPC_Pointer(nullptr);
-		player->Set_Talk_Flg(this->Is_Talk_Flg);*/
-
-		GetMesh()->SetRenderCustomDepth(false);
-		UE_LOG(LogTemp, Log, TEXT("Outline is false"));
-	}
-}
-
-void ANPC_Character::SetOutline(AMain_Character* player)
-{
-	if (GetMesh() && player != nullptr)
-	{
-		GetMesh()->SetRenderCustomDepth(true);
-		UE_LOG(LogTemp, Log, TEXT("Outline is true"));
-	}
-	else
-	{
-		GetMesh()->SetRenderCustomDepth(false);
 		UE_LOG(LogTemp, Log, TEXT("Outline is false"));
 	}
 }

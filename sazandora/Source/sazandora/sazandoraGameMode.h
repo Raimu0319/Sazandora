@@ -33,6 +33,7 @@ public:
 	UFUNCTION()
 	void ClearCheck(AMyPlayerState* p);
 
+	// 
 	UFUNCTION()
 	void Start_Game();
 	

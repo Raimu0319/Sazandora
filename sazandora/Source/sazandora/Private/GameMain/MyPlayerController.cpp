@@ -68,13 +68,6 @@ void AMyPlayerController::OnRep_PlayerState()
 	// 親クラスの関数を呼び出し
 	Super::OnRep_PlayerState();
 
-	// クライアントのみでの実行
-	//if (IsLocalController())
-	//{
-	//	// PlayerStateが生成されたタイミングで通知
-	//	NotifyLoaded();
-	//}
-
 	FString PSName = GetPlayerState<AMyPlayerState>()
 		? GetPlayerState<AMyPlayerState>()->GetName()
 		: TEXT("null");
@@ -169,12 +162,6 @@ void AMyPlayerController::NotifyLoaded()
 		UE_LOG(LogTemp, Warning, TEXT("[%s] NotifyLoaded skipped: PlayerState not ready"), *GetName());
 		return;
 	}
-
-	// サーバーのみで実行
-	//if (!IsLocalController())
-	//{
-	//	player_state->My_State_Initialize();
-	//}
 
 	// playerstateがちゃんと同期（ロード）完了フラグ
 	bAlreadyNotified = true;
@@ -283,6 +270,9 @@ void AMyPlayerController::Create_EndWidget()
 			FInputModeUIOnly InputMode;
 			InputMode.SetWidgetToFocus(end_widget->TakeWidget());
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+			// 入力状態を初期化
+			FlushPressedKeys();
 
 			// 入力をマウスカーソルのみにする
 			SetInputMode(InputMode);
@@ -411,6 +401,7 @@ void AMyPlayerController::Client_EndGame_Implementation(bool is_clear)
 		}, 0.3f, false);
 }
 
+// リザルトウィンドウの表示
 void AMyPlayerController::Set_EndWidget_Text(bool flg)
 {
 	end_widget->Set_ClearFlg(flg);

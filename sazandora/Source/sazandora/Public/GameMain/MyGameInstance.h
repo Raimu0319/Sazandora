@@ -27,6 +27,8 @@ public:
 	void StartAPIServer();
 	void StopAPIServer();
 	void Set_PlayerCount(int32_t count);
+	//起動したサーバーのハンドルをセットするための関数
+	void Set_ServerProcess(FProcHandle handle);
 private:
 	FProcHandle NodeProcessHandle;
 	FTimerHandle HeartbeatTimer;
@@ -35,4 +37,7 @@ private:
 	void OnServerPreExit();
 	void UpdateServerInfoOnAPI();
 	bool CleanedUp = false;
+	//サーバーのハンドル保持用変数
+	TArray<FProcHandle> ServerProcessHandle;
+
 };

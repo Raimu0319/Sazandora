@@ -180,8 +180,13 @@ void ULogInWidget::Server_Start()
 	//サーバー起動時に渡すコマンドライン引数
 	FString ServerArgs = FString::Printf(TEXT("/Game/PolygonCity/Maps/test_map?listen?port=%d?apiip=%s ?game=Class'/Script/sazandora.SazandoraGameMode' -log"), Port, *APIServerIP);
 	//サーバー起動用ファイルを起動する
-	FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
-
+	FProcHandle handle;
+	handle = FPlatformProcess::CreateProc(*ServerPath, *ServerArgs, true, false, false, nullptr, 0, nullptr, nullptr);
+	UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+	if (GI)
+	{
+		GI->Set_ServerProcess(handle);
+	}
 	//指定した秒数経過後に先ほど起動したサーバーに接続する
 	FTimerHandle TimerHandle;
 
